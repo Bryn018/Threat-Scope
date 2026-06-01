@@ -17,28 +17,32 @@ function App() {
   const [query, setQuery] = useState('')
   const [selectedThreat, setSelectedThreat] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState('')
+  const [lastUpdated, setLastUpdated] = useState(null)
+
+  async function loadThreats(signal) {
+    const response = await fetch(KEV_FEED_URL, { signal })
+
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`)
+    }
+
+    const payload = await response.json()
+    const nextVulnerabilities = Array.isArray(payload.vulnerabilities)
+      ? payload.vulnerabilities
+      : []
+
+    setVulnerabilities(nextVulnerabilities)
+    setLastUpdated(new Date().toLocaleString())
+  }
 
   useEffect(() => {
     const controller = new AbortController()
 
-    async function loadThreats() {
-      setIsLoading(true)
-      setError('')
-
+    async function initialise() {
       try {
-        const response = await fetch(KEV_FEED_URL, { signal: controller.signal })
-
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`)
-        }
-
-        const payload = await response.json()
-        const nextVulnerabilities = Array.isArray(payload.vulnerabilities)
-          ? payload.vulnerabilities
-          : []
-
-        setVulnerabilities(nextVulnerabilities)
+        await loadThreats(controller.signal)
       } catch (fetchError) {
         if (fetchError.name !== 'AbortError') {
           setError('Failed to load threat feed. Please try again.')
@@ -51,10 +55,69 @@ function App() {
       }
     }
 
-    loadThreats()
+    initialise()
 
     return () => controller.abort()
   }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || isLoading) {
+      return
+    }
+
+    const POLL_INTERVAL = 5 * 60 * 1000
+    const VISIBLE_INTERVAL = 60 * 1000
+
+    let timeoutId
+    let controller
+    let cancelled = false
+
+    async function scheduleNext(interval) {
+      timeoutId = setTimeout(async () => {
+        if (cancelled) {
+          return
+        }
+
+        controller = new AbortController()
+        setIsRefreshing(true)
+
+        try {
+          await loadThreats(controller.signal)
+        } catch (fetchError) {
+          if (fetchError.name !== 'AbortError') {
+            setError('Background refresh failed. Data may be stale.')
+          }
+        } finally {
+          if (!cancelled) {
+            setIsRefreshing(false)
+            scheduleNext(document.hidden ? POLL_INTERVAL : VISIBLE_INTERVAL)
+          }
+        }
+      }, interval)
+    }
+
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        clearTimeout(timeoutId)
+        scheduleNext(POLL_INTERVAL)
+      } else {
+        clearTimeout(timeoutId)
+        scheduleNext(VISIBLE_INTERVAL)
+      }
+    }
+
+    scheduleNext(VISIBLE_INTERVAL)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      clearTimeout(timeoutId)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      if (controller) {
+        controller.abort()
+      }
+      cancelled = true
+    }
+  }, [isLoading])
 
   const filteredVulnerabilities = useMemo(
     () => filterVulnerabilities(vulnerabilities, query),
@@ -74,16 +137,35 @@ function App() {
     <main className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-7xl space-y-6">
         <header className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Threat Scope / SOC Dashboard</p>
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <h1 className="text-2xl font-semibold text-white sm:text-3xl">Known Exploited Vulnerabilities Tracker</h1>
-            <div className="w-full max-w-md">
-              <SearchBar value={query} onChange={setQuery} />
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Threat Scope / SOC Dashboard</p>
+              <h1 className="text-2xl font-semibold text-white sm:text-3xl">Known Exploited Vulnerabilities Tracker</h1>
             </div>
+            <div className="flex items-center gap-3">
+              {isRefreshing && (
+                <span className="text-xs text-slate-400">Refreshing…</span>
+              )}
+              {lastUpdated && !isRefreshing && (
+                <span className="text-xs text-slate-500">Updated {lastUpdated}</span>
+              )}
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-300">
+                <span className="relative inline-flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                Live
+              </span>
+            </div>
+          </div>
+          <div className="w-full max-w-md">
+            <SearchBar value={query} onChange={setQuery} />
           </div>
         </header>
 
-        {isLoading && <p className="rounded-xl border border-slate-700 bg-slate-900/80 p-4 text-sm text-slate-300">Loading threat feed...</p>}
+        {isLoading && (
+          <p className="rounded-xl border border-slate-700 bg-slate-900/80 p-4 text-sm text-slate-300">Loading threat feed...</p>
+        )}
 
         {!isLoading && error && (
           <p className="rounded-xl border border-red-500/60 bg-red-500/10 p-4 text-sm text-red-200">{error}</p>
@@ -96,7 +178,7 @@ function App() {
                 icon={Activity}
                 label="Tracked Vulnerabilities"
                 value={filteredVulnerabilities.length.toLocaleString()}
-                subtitle={query ? 'Filtered results' : 'All current KEV entries'}
+                subtitle={query ? 'Filtered results' : 'Auto-refreshing KEV catalog'}
               />
               <MetricCard icon={ShieldX} label="Critical Alerts" value={metrics.critical.toLocaleString()} tone="alert" />
               <MetricCard icon={ShieldCheck} label="High Alerts" value={metrics.high.toLocaleString()} tone="warning" />

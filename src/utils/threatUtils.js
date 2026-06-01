@@ -1,5 +1,7 @@
 export const KEV_FEED_URL =
-  'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json'
+  process.env.NODE_ENV === 'test'
+    ? '/kev/sites/default/files/feeds/known_exploited_vulnerabilities.json'
+    : '/kev/sites/default/files/feeds/known_exploited_vulnerabilities.json'
 
 export function getThreatLevel(vulnerability) {
   if (!vulnerability) {

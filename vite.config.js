@@ -4,6 +4,16 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  base: '/Threat-Scope/',
+  server: {
+    proxy: {
+      '/kev': {
+        target: 'https://www.cisa.gov',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/kev/, ''),
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     setupFiles: './src/setupTests.js',
