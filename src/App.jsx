@@ -13,7 +13,7 @@ import {
   normalizeVulnerabilities,
 } from './utils/threatUtils'
 
-const STATIC_DATA_PATH = '/Threat-Scope/data/cisa-kev.json'
+const STATIC_DATA_PATH = '/data/cisa-kev.json'
 
 function isDevelopment() {
   if (typeof window === 'undefined') {
