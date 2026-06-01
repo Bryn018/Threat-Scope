@@ -10,7 +10,18 @@ import {
   buildVendorBreakdown,
   filterVulnerabilities,
   getThreatLevel,
+  normalizeVulnerabilities,
 } from './utils/threatUtils'
+
+const STATIC_DATA_PATH = '/Threat-Scope/data/cisa-kev.json'
+
+function isDevelopment() {
+  if (typeof window === 'undefined') {
+    return false
+  }
+
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+}
 
 function App() {
   const [vulnerabilities, setVulnerabilities] = useState([])
@@ -20,21 +31,43 @@ function App() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [error, setError] = useState('')
   const [lastUpdated, setLastUpdated] = useState(null)
+  const [dataSource, setDataSource] = useState('')
 
   async function loadThreats(signal) {
-    const response = await fetch(KEV_FEED_URL, { signal })
+    const urls = isDevelopment() ? [KEV_FEED_URL, STATIC_DATA_PATH] : [STATIC_DATA_PATH, KEV_FEED_URL]
 
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`)
+    let lastError = null
+
+    for (const url of urls) {
+      try {
+        const response = await fetch(url, { signal })
+
+        if (!response.ok) {
+          lastError = new Error(`Request failed with status ${response.status}`)
+          continue
+        }
+
+        const payload = await response.json()
+        const nextVulnerabilities = normalizeVulnerabilities(payload)
+
+        if (nextVulnerabilities.length > 0) {
+          setVulnerabilities(nextVulnerabilities)
+          setDataSource(url === STATIC_DATA_PATH ? 'static snapshot' : 'live CISA feed')
+          setLastUpdated(new Date().toLocaleString())
+          return
+        }
+
+        lastError = new Error('Empty dataset')
+      } catch (fetchError) {
+        if (fetchError.name === 'AbortError') {
+          throw fetchError
+        }
+
+        lastError = fetchError
+      }
     }
 
-    const payload = await response.json()
-    const nextVulnerabilities = Array.isArray(payload.vulnerabilities)
-      ? payload.vulnerabilities
-      : []
-
-    setVulnerabilities(nextVulnerabilities)
-    setLastUpdated(new Date().toLocaleString())
+    throw lastError ?? new Error('Failed to load threat feed from all sources.')
   }
 
   useEffect(() => {
@@ -61,12 +94,12 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (typeof window === 'undefined' || isLoading) {
+    if (typeof window === 'undefined' || isLoading || !isDevelopment()) {
       return
     }
 
-    const POLL_INTERVAL = 5 * 60 * 1000
     const VISIBLE_INTERVAL = 60 * 1000
+    const POLL_INTERVAL = 5 * 60 * 1000
 
     let timeoutId
     let controller
@@ -112,9 +145,11 @@ function App() {
     return () => {
       clearTimeout(timeoutId)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
+
       if (controller) {
         controller.abort()
       }
+
       cancelled = true
     }
   }, [isLoading])
@@ -147,7 +182,10 @@ function App() {
                 <span className="text-xs text-slate-400">Refreshing…</span>
               )}
               {lastUpdated && !isRefreshing && (
-                <span className="text-xs text-slate-500">Updated {lastUpdated}</span>
+                <span className="text-xs text-slate-500">
+                  Updated {lastUpdated}
+                  {dataSource && !isDevelopment() && ` • ${dataSource}`}
+                </span>
               )}
               <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-300">
                 <span className="relative inline-flex h-2 w-2">
@@ -178,7 +216,7 @@ function App() {
                 icon={Activity}
                 label="Tracked Vulnerabilities"
                 value={filteredVulnerabilities.length.toLocaleString()}
-                subtitle={query ? 'Filtered results' : 'Auto-refreshing KEV catalog'}
+                subtitle={isDevelopment() ? 'Auto-refreshing KEV catalog' : 'Snapshot'}
               />
               <MetricCard icon={ShieldX} label="Critical Alerts" value={metrics.critical.toLocaleString()} tone="alert" />
               <MetricCard icon={ShieldCheck} label="High Alerts" value={metrics.high.toLocaleString()} tone="warning" />

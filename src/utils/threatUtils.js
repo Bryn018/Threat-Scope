@@ -1,7 +1,4 @@
-export const KEV_FEED_URL =
-  process.env.NODE_ENV === 'test'
-    ? '/kev/sites/default/files/feeds/known_exploited_vulnerabilities.json'
-    : '/kev/sites/default/files/feeds/known_exploited_vulnerabilities.json'
+export const KEV_FEED_URL = '/kev/sites/default/files/feeds/known_exploited_vulnerabilities.json'
 
 export function getThreatLevel(vulnerability) {
   if (!vulnerability) {
@@ -65,4 +62,16 @@ export function filterVulnerabilities(vulnerabilities, query) {
 
     return searchable.includes(normalizedQuery)
   })
+}
+
+export function normalizeVulnerabilities(payload) {
+  if (Array.isArray(payload.vulnerabilities)) {
+    return payload.vulnerabilities
+  }
+
+  if (Array.isArray(payload)) {
+    return payload
+  }
+
+  return []
 }
