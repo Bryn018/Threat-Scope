@@ -1,16 +1,58 @@
 import { Search } from 'lucide-react'
 
-export default function Filters({ value, onChange }) {
+const SEVERITY_OPTIONS = ['Known', 'Expected', 'No']
+
+export default function Filters({ value, onChange, severity, onSeverityChange, vendor, onVendorChange, sortOrder, onSortOrderChange, vendors }) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="relative w-full sm:max-w-md">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-        <input
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder="Search vulnerabilities"
-          className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-white/40 focus:outline-none"
-        />
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-md">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          <input
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            placeholder="Search vulnerabilities (CVE, vendor, note)"
+            className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-white/40 focus:outline-none"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={sortOrder}
+            onChange={(event) => onSortOrderChange(event.target.value)}
+            className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-white/40 focus:outline-none"
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="severity">Highest severity first</option>
+          </select>
+          <select
+            value={vendor}
+            onChange={(event) => onVendorChange(event.target.value)}
+            className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-white/40 focus:outline-none"
+          >
+            <option value="">All vendors</option>
+            {vendors.map((entry) => (
+              <option key={entry.name} value={entry.name}>{entry.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {SEVERITY_OPTIONS.map((option) => {
+          const active = severity === option
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onSeverityChange(active ? '' : option)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                active ? 'border-white/70 bg-white/10 text-white' : 'border-slate-800 bg-slate-900/40 text-slate-300 hover:border-white/40'
+              }`}
+            >
+              {option === 'Known' ? 'Ransomware known' : option === 'Expected' ? 'Faster action' : 'Standard'}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, AlertTriangle, ShieldCheck, ShieldX, Rss } from 'lucide-react'
+import { Activity, AlertTriangle, ShieldCheck, ShieldX, Rss, Clock } from 'lucide-react'
 import KpiCard from './components/KpiCard'
 import Filters from './components/Filters'
 import Charts from './components/Charts'
@@ -9,6 +9,8 @@ import {
   KEV_FEED_URL,
   normalizeVulnerabilities,
   filterVulnerabilities,
+  getThreatLevel,
+  buildVendorBreakdown,
 } from './utils/threatUtils'
 
 const STATIC_DATA_PATH = '/data/cisa-kev.json'
@@ -16,6 +18,23 @@ const STATIC_DATA_PATH = '/data/cisa-kev.json'
 function isDevelopment() {
   if (typeof window === 'undefined') return false
   return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+}
+
+function todayLabel() {
+  return new Date().toLocaleDateString('en-CA')
+}
+
+function deriveSeverity(vulnerability) {
+  if ((vulnerability.knownRansomwareCampaignUse ?? '').toLowerCase() === 'known') return 'Known'
+  if (/immediate|immediately/i.test(vulnerability.requiredAction ?? '')) return 'Expected'
+  return 'No'
+}
+
+function deriveIncompleteStatus(vulnerability) {
+  const notes = (vulnerability.notes ?? '').toLowerCase()
+  if (notes.includes('ian') || notes.includes('rp')) return 'yes'
+  if (notes.includes('compliance') || notes.includes('assessment')) return 'possible'
+  return 'no'
 }
 
 function App() {
@@ -27,6 +46,9 @@ function App() {
   const [error, setError] = useState('')
   const [lastUpdated, setLastUpdated] = useState(null)
   const [dataSource, setDataSource] = useState('')
+  const [severity, setSeverity] = useState('')
+  const [vendor, setVendor] = useState('')
+  const [sortOrder, setSortOrder] = useState('newest')
 
   async function loadThreats(signal) {
     const urls = isDevelopment() ? [KEV_FEED_URL, STATIC_DATA_PATH] : [STATIC_DATA_PATH, KEV_FEED_URL]
@@ -116,24 +138,46 @@ function App() {
     }
   }, [isLoading])
 
-  const filteredVulnerabilities = useMemo(
-    () => filterVulnerabilities(vulnerabilities, query),
-    [vulnerabilities, query]
-  )
+  const vendorCounts = useMemo(() => buildVendorBreakdown(vulnerabilities, 12), [vulnerabilities])
+
+  const filteredVulnerabilities = useMemo(() => {
+    const base = filterVulnerabilities(vulnerabilities, query)
+    return base.filter((vulnerability) => {
+      if (!severity) return true
+      return deriveSeverity(vulnerability) === severity
+    })
+      .filter((vulnerability) => {
+        if (!vendor) return true
+        return (vulnerability.vendorProject || 'Unknown') === vendor
+      })
+      .slice()
+      .sort((a, b) => {
+        const severityOrder = { Known: 0, Expected: 1, No: 2 }
+        if (sortOrder === 'severity') return (severityOrder[deriveSeverity(a)] ?? 9) - (severityOrder[deriveSeverity(b)] ?? 9)
+        const order = a.dateAdded.localeCompare(b.dateAdded)
+        return sortOrder === 'newest' ? -order : order
+      })
+  }, [vulnerabilities, query, severity, vendor, sortOrder])
 
   const metrics = useMemo(() => {
     const total = vulnerabilities.length
     const critical = vulnerabilities.filter((v) => (v.knownRansomwareCampaignUse ?? '').toLowerCase() === 'known').length
     const high = vulnerabilities.filter((v) => /immediate|immediately/i.test(v.requiredAction ?? '')).length
     const ransomware = vulnerabilities.filter((v) => (v.knownRansomwareCampaignUse ?? '').toLowerCase() === 'known').length
-    const remade = vulnerabilities.filter((v) => (v.notes ?? '').toLowerCase().includes('remdiation')).length
-    const topVendor = vulnerabilities.reduce((acc, v) => {
-      const vendor = v.vendorProject || 'Unknown'
-      acc.set(vendor, (acc.get(vendor) ?? 0) + 1)
-      return acc
-    }, new Map())
-    const topVendorEntry = [...topVendor.entries()].sort((a, b) => b[1] - a[1])[0]
-    return { total, critical, high, ransomware, remade, topVendor: topVendorEntry?.[0] ?? '—' }
+    const incomplete = vulnerabilities.filter((v) => deriveIncompleteStatus(v) === 'yes').length
+    const possibleIncomplete = vulnerabilities.filter((v) => deriveIncompleteStatus(v) === 'possible').length
+    const todayCount = vulnerabilities.filter((v) => v.dateAdded === todayLabel()).length
+    const topVendor = buildVendorBreakdown(vulnerabilities, 1)[0]
+    return {
+      total,
+      critical,
+      high,
+      ransomware,
+      incomplete,
+      possibleIncomplete,
+      todayCount,
+      topVendor: topVendor?.name ?? '—',
+    }
   }, [vulnerabilities])
 
   return (
@@ -172,14 +216,24 @@ function App() {
         )}
         {!isLoading && !error && (
           <div className="space-y-6">
-            <Filters value={query} onChange={setQuery} />
+            <Filters
+              value={query}
+              onChange={setQuery}
+              severity={severity}
+              onSeverityChange={setSeverity}
+              vendor={vendor}
+              onVendorChange={setVendor}
+              sortOrder={sortOrder}
+              onSortOrderChange={setSortOrder}
+              vendors={vendorCounts}
+            />
 
             <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               <KpiCard icon={Activity} label="Tracked Vulnerabilities" value={metrics.total.toLocaleString()} />
               <KpiCard icon={AlertTriangle} label="Critical Alerts" value={metrics.critical.toLocaleString()} tone="alert" />
               <KpiCard icon={ShieldCheck} label="High Alerts" value={metrics.high.toLocaleString()} tone="warning" />
               <KpiCard icon={ShieldX} label="Ransomware Related" value={metrics.ransomware.toLocaleString()} />
-              <KpiCard icon={Rss} label="Remediation Notes" value={`${metrics.remade} with notes`} />
+              <KpiCard icon={Clock} label="Added Today" value={`${metrics.todayCount}`} />
               <KpiCard label="Top Vendor" value={metrics.topVendor} />
             </section>
 
