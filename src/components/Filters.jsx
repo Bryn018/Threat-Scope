@@ -1,8 +1,21 @@
 import { Search } from 'lucide-react'
 
 const SEVERITY_OPTIONS = ['Known', 'Expected', 'No']
+const WINDOW_OPTIONS = [
+  { label: 'last 24h', value: '1' },
+  { label: 'last 7d', value: '7' },
+  { label: 'last 30d', value: '30' },
+  { label: 'last 90d', value: '90' },
+]
 
-export default function Filters({ value, onChange, severity, onSeverityChange, vendor, onVendorChange, sortOrder, onSortOrderChange, vendors }) {
+function dateDaysAgo(days) {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() - days)
+  return d.toISOString().slice(0, 10)
+}
+
+export default function Filters({ value, onChange, severity, onSeverityChange, vendor, onVendorChange, sortOrder, onSortOrderChange, vendors, windowDays, onWindowChange }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -33,6 +46,19 @@ export default function Filters({ value, onChange, severity, onSeverityChange, v
             <option value="">All vendors</option>
             {vendors.map((entry) => (
               <option key={entry.name} value={entry.name}>{entry.name}</option>
+            ))}
+          </select>
+          <select
+            value={windowDays ?? ''}
+            onChange={(event) => {
+              const next = event.target.value
+              onWindowChange(next ? Number(next) : undefined)
+            }}
+            className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-white/40 focus:outline-none"
+          >
+            <option value="">All time</option>
+            {WINDOW_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>Added: {option.label}</option>
             ))}
           </select>
         </div>

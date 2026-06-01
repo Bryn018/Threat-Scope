@@ -1,4 +1,4 @@
-export default function KpiCard({ icon: Icon, label, value, tone = 'default', className = '' }) {
+export default function KpiCard({ icon: Icon, label, value, tone = 'default', className = '', onClick }) {
   const toneStyles = {
     default: 'border-slate-800 bg-slate-900/60 text-slate-100',
     alert: 'border-rose-500/40 bg-rose-500/10 text-rose-100',
@@ -6,7 +6,10 @@ export default function KpiCard({ icon: Icon, label, value, tone = 'default', cl
   }[tone] ?? 'border-slate-800 bg-slate-900/60 text-slate-100'
 
   return (
-    <div className={`rounded-2xl border p-4 ${toneStyles} ${className}`}>
+    <div
+      className={`rounded-2xl border p-4 ${toneStyles} ${className} ${onClick ? 'cursor-pointer transition hover:border-white/40' : ''}`}
+      {...(onClick ? { role: 'button', tabIndex: 0, onClick, onKeyDown: (event) => { if (event.key === 'Enter') onClick() } } : {})}
+    >
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
         {Icon ? <Icon className="h-4 w-4 text-slate-400" /> : null}

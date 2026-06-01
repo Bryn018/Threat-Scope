@@ -11,8 +11,6 @@ import {
   Pie,
   Cell,
   Legend,
-  LineChart,
-  Line,
 } from 'recharts'
 
 const palette = ['#38bdf8', '#f472b6', '#a78bfa', '#facc15', '#34d399', '#fb7185']
@@ -54,14 +52,14 @@ function severityRows(vulnerabilities) {
   return Object.entries(counts).map(([name, value]) => ({ name, value }))
 }
 
-export default function Charts({ vulnerabilities }) {
+export default function Charts({ vulnerabilities, onFilterVendor, onFilterSeverity }) {
   const vendor = useMemo(() => buildVendorRows(vulnerabilities), [vulnerabilities])
   const severity = useMemo(() => severityRows(vulnerabilities), [vulnerabilities])
 
   return (
     <div className="grid gap-4 xl:grid-cols-3">
       <div className="xl:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-        <h2 className="text-sm font-semibold text-slate-300">Top Vendors</h2>
+        <h2 className="text-sm font-semibold text-slate-300">Top Vendors — click to filter table</h2>
         <div className="mt-3 h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={vendor}>
@@ -69,7 +67,7 @@ export default function Charts({ vulnerabilities }) {
               <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} interval={0} angle={-20} textAnchor="end" height={70} />
               <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} width={45} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+              <Bar dataKey="value" radius={[6, 6, 0, 0]} onClick={(entry) => onFilterVendor?.(entry?.name)}>
                 {vendor.map((entry, i) => (
                   <Cell key={entry.name} fill={palette[i % palette.length]} />
                 ))}
@@ -80,11 +78,21 @@ export default function Charts({ vulnerabilities }) {
       </div>
 
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-        <h2 className="text-sm font-semibold text-slate-300">Severity Breakdown</h2>
+        <h2 className="text-sm font-semibold text-slate-300">Severity Breakdown — click to filter table</h2>
         <div className="mt-2 h-64">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={severity} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={48} outerRadius={90} paddingAngle={4}>
+              <Pie
+                data={severity}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                innerRadius={48}
+                outerRadius={90}
+                paddingAngle={4}
+                onClick={(entry) => onFilterSeverity?.(entry?.name)}
+              >
                 {severity.map((entry, i) => (
                   <Cell key={entry.name} fill={['#f87171', '#fbbf24', '#94a3b8'][i % 3]} />
                 ))}

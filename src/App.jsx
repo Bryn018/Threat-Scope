@@ -49,6 +49,7 @@ function App() {
   const [severity, setSeverity] = useState('')
   const [vendor, setVendor] = useState('')
   const [sortOrder, setSortOrder] = useState('newest')
+  const [windowDays, setWindowDays] = useState(undefined)
 
   async function loadThreats(signal) {
     const urls = isDevelopment() ? [KEV_FEED_URL, STATIC_DATA_PATH] : [STATIC_DATA_PATH, KEV_FEED_URL]
@@ -142,6 +143,7 @@ function App() {
 
   const filteredVulnerabilities = useMemo(() => {
     const base = filterVulnerabilities(vulnerabilities, query)
+    const latestCutoff = windowDays ? dateDaysAgo(Number(windowDays)) : undefined
     return base.filter((vulnerability) => {
       if (!severity) return true
       return deriveSeverity(vulnerability) === severity
@@ -150,6 +152,10 @@ function App() {
         if (!vendor) return true
         return (vulnerability.vendorProject || 'Unknown') === vendor
       })
+      .filter((vulnerability) => {
+        if (!latestCutoff) return true
+        return (vulnerability.dateAdded ?? '') >= latestCutoff
+      })
       .slice()
       .sort((a, b) => {
         const severityOrder = { Known: 0, Expected: 1, No: 2 }
@@ -157,7 +163,7 @@ function App() {
         const order = a.dateAdded.localeCompare(b.dateAdded)
         return sortOrder === 'newest' ? -order : order
       })
-  }, [vulnerabilities, query, severity, vendor, sortOrder])
+  }, [vulnerabilities, query, severity, vendor, sortOrder, windowDays])
 
   const metrics = useMemo(() => {
     const total = vulnerabilities.length
@@ -226,18 +232,24 @@ function App() {
               sortOrder={sortOrder}
               onSortOrderChange={setSortOrder}
               vendors={vendorCounts}
+              windowDays={windowDays}
+              onWindowChange={setWindowDays}
             />
 
             <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-              <KpiCard icon={Activity} label="Tracked Vulnerabilities" value={metrics.total.toLocaleString()} />
-              <KpiCard icon={AlertTriangle} label="Critical Alerts" value={metrics.critical.toLocaleString()} tone="alert" />
-              <KpiCard icon={ShieldCheck} label="High Alerts" value={metrics.high.toLocaleString()} tone="warning" />
-              <KpiCard icon={ShieldX} label="Ransomware Related" value={metrics.ransomware.toLocaleString()} />
-              <KpiCard icon={Clock} label="Added Today" value={`${metrics.todayCount}`} />
-              <KpiCard label="Top Vendor" value={metrics.topVendor} />
+              <KpiCard icon={Activity} label="Tracked Vulnerabilities" value={metrics.total.toLocaleString()} onClick={() => { setQuery(''); setSeverity(''); setVendor(''); setWindowDays(undefined) }} />
+              <KpiCard icon={AlertTriangle} label="Critical Alerts" value={metrics.critical.toLocaleString()} tone="alert" onClick={() => { setQuery(''); setSeverity('Known'); setVendor(''); setWindowDays(undefined) }} />
+              <KpiCard icon={ShieldCheck} label="High Alerts" value={metrics.high.toLocaleString()} tone="warning" onClick={() => { setQuery(''); setSeverity('Expected'); setVendor(''); setWindowDays(undefined) }} />
+              <KpiCard icon={ShieldX} label="Ransomware Related" value={metrics.ransomware.toLocaleString()} onClick={() => { setQuery(''); setSeverity('Known'); setVendor(''); setWindowDays(undefined) }} />
+              <KpiCard icon={Clock} label="Added Today" value={`${metrics.todayCount}`} onClick={() => { setQuery(''); setSeverity(''); setVendor(''); setWindowDays(1) }} />
+              <KpiCard label="Top Vendor" value={metrics.topVendor} onClick={() => { setQuery(''); setSeverity(''); setVendor(metrics.topVendor); setWindowDays(undefined) }} />
             </section>
 
-            <Charts vulnerabilities={filteredVulnerabilities} />
+            <Charts
+              vulnerabilities={filteredVulnerabilities}
+              onFilterVendor={setVendor}
+              onFilterSeverity={(severityKey) => setSeverity((current) => (current === severityKey ? '' : severityKey))}
+            />
 
             <ThreatTable
               vulnerabilities={filteredVulnerabilities}
