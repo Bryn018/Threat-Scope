@@ -1,0 +1,102 @@
+{
+  "CWE-20": {
+    "id": "T1190",
+    "name": "Exploit Public Application",
+    "tactic": "Initial Access"
+  },
+  "CWE-78": {
+    "id": "T1059",
+    "name": "Command and Scripting Interpreter",
+    "tactic": "Execution"
+  },
+  "CWE-787": {
+    "id": "T1190",
+    "name": "Exploit Public Application",
+    "tactic": "Initial Access"
+  },
+  "CWE-416": {
+    "id": "T1203",
+    "name": "Exploitation for Client Execution",
+    "tactic": "Execution"
+  },
+  "CWE-119": {
+    "id": "T1190",
+    "name": "Exploit Public Application",
+    "tactic": "Initial Access"
+  },
+  "CWE-22": {
+    "id": "T1083",
+    "name": "File and Directory Discovery",
+    "tactic": "Discovery"
+  },
+  "CWE-502": {
+    "id": "T1059",
+    "name": "Command and Scripting Interpreter",
+    "tactic": "Execution"
+  },
+  "CWE-94": {
+    "id": "T1190",
+    "name": "Code Injection",
+    "tactic": "Execution"
+  },
+  "CWE-287": {
+    "id": "T1078",
+    "name": "Valid Accounts",
+    "tactic": "Defense Evasion"
+  },
+  "CWE-843": {
+    "id": "T1059",
+    "name": "Access Token Manipulation",
+    "tactic": "Defense Evasion"
+  },
+  "CWE-306": {
+    "id": "T1078",
+    "name": "Default Credentials",
+    "tactic": "Initial Access"
+  },
+  "CWE-79": {
+    "id": "T1059",
+    "name": "XSS",
+    "tactic": "Initial Access"
+  },
+  "CWE-284": {
+    "id": "T1078",
+    "name": "Improper Access Control",
+    "tactic": "Defense Evasion"
+  },
+  "CWE-264": {
+    "id": "T1068",
+    "name": "Exploitation for Privilege Escalation",
+    "tactic": "Privilege Escalation"
+  },
+  "CWE-122": {
+    "id": "T1190",
+    "name": "Heap-based Overflow",
+    "tactic": "Execution"
+  },
+  "CWE-77": {
+    "id": "T1059",
+    "name": "Command Injection",
+    "tactic": "Execution"
+  },
+  "CWE-89": {
+    "id": "T1190",
+    "name": "SQL Injection",
+    "tactic": "Initial Access"
+  },
+  "CWE-200": {
+    "id": "T1040",
+    "name": "Network Sniffing",
+    "tactic": "Credential Access"
+  },
+  "CWE-434": {
+    "id": "T1106",
+    "name": "Exploitation for Remote Code Execution",
+    "tactic": "Execution"
+  },
+  "CWE-399": {
+    "id": "T1190",
+    "name": "Resource Management Errors",
+    "tactic": "Execution"
+  }
+}

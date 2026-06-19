@@ -14,6 +14,7 @@ import {
   AreaChart,
   Area,
 } from 'recharts'
+import { buildAttackTechniqueBreakdown } from '../utils/threatUtils'
 
 const palette = ['#38bdf8', '#f472b6', '#a78bfa', '#facc15', '#34d399', '#fb7185']
 
@@ -85,11 +86,16 @@ export default function Charts({
   onFilterVendor,
   onFilterCwe,
   onFilterSeverity,
+  techniqueMap = {},
 }) {
   const vendorData = useMemo(() => buildVendorRows(vulnerabilities), [vulnerabilities])
   const severityData = useMemo(() => severityRows(vulnerabilities), [vulnerabilities])
   const cweData = useMemo(() => cweRows(vulnerabilities), [vulnerabilities])
   const timelineData = useMemo(() => timelineRows(vulnerabilities), [vulnerabilities])
+  const tacticData = useMemo(
+    () => buildAttackTechniqueBreakdown(vulnerabilities, techniqueMap),
+    [vulnerabilities, techniqueMap]
+  )
 
   const axisStyle = { fontSize: 11, fill: '#94a3b8' }
   const gridStyle = { stroke: '#334155', strokeDasharray: '4 4' }
@@ -216,6 +222,34 @@ export default function Charts({
           </div>
         </div>
       </div>
+
+      {tacticData.length > 0 && (
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+          <h2 className="text-sm font-semibold text-slate-300">ATT&CK Tactics (from CWE mapping)</h2>
+          <div className="mt-3 h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={tacticData}>
+                <CartesianGrid {...gridStyle} />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 10, fill: '#94a3b8' }}
+                  interval={0}
+                  angle={-20}
+                  textAnchor="end"
+                  height={70}
+                />
+                <YAxis tick={axisStyle} width={40} allowDecimals={false} />
+                <Tooltip content={<ChartTooltip />} />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                  {tacticData.map((entry, i) => (
+                    <Cell key={entry.name} fill={palette[(i + 3) % palette.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

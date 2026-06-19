@@ -14,6 +14,8 @@ import {
   buildVendorBreakdown,
   buildCweBreakdown,
   buildTimelineRows,
+  buildAttackTechniqueBreakdown,
+  loadTechniqueMap,
   dateDaysAgo,
 } from './utils/threatUtils'
 
@@ -55,6 +57,7 @@ function App() {
   const [cwe, setCwe] = useState('')
   const [sortOrder, setSortOrder] = useState('newest')
   const [windowDays, setWindowDays] = useState(undefined)
+  const [techniqueMap, setTechniqueMap] = useState({})
 
   async function loadThreats(signal) {
     const urls = isDevelopment() ? [KEV_FEED_URL, STATIC_DATA_PATH] : [STATIC_DATA_PATH, KEV_FEED_URL]
@@ -98,6 +101,16 @@ function App() {
       }
     }
     initialise()
+    return () => controller.abort()
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    async function loadTechMap() {
+      const map = await loadTechniqueMap()
+      if (!controller.signal.aborted) setTechniqueMap(map)
+    }
+    loadTechMap()
     return () => controller.abort()
   }, [])
 
@@ -260,6 +273,7 @@ function App() {
               onFilterVendor={setVendor}
               onFilterCwe={setCwe}
               onFilterSeverity={(severityKey) => setSeverity((current) => (current === severityKey ? '' : severityKey))}
+              techniqueMap={techniqueMap}
             />
 
             <ThreatTable
@@ -270,7 +284,7 @@ function App() {
         )}
       </main>
 
-      <ThreatModal vulnerability={selectedThreat} onClose={() => setSelectedThreat(null)} />
+      <ThreatModal vulnerability={selectedThreat} onClose={() => setSelectedThreat(null)} techniqueMap={techniqueMap} />
     </div>
   )
 }

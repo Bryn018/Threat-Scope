@@ -118,3 +118,32 @@ export function filterByCwe(vulnerabilities, cwe) {
     return cwes.includes(cwe)
   })
 }
+
+export async function loadTechniqueMap() {
+  try {
+    const response = await fetch('/data/technique-map.json')
+    if (!response.ok) return {}
+    return await response.json()
+  } catch {
+    return {}
+  }
+}
+
+export function buildAttackTechniqueBreakdown(vulnerabilities, techniqueMap = {}, maxEntries = 8) {
+  if (!Object.keys(techniqueMap).length) return []
+
+  const counts = new Map()
+  for (const v of vulnerabilities) {
+    const cwes = Array.isArray(v.cwes) ? v.cwes : []
+    for (const cwe of cwes) {
+      const tech = techniqueMap[cwe]
+      if (!tech) continue
+      const key = tech.tactic || 'Other'
+      counts.set(key, (counts.get(key) || 0) + 1)
+    }
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, maxEntries)
+    .map(([name, value]) => ({ name, value }))
+}

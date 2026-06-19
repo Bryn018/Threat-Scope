@@ -1,12 +1,17 @@
 import { ExternalLink, X } from 'lucide-react'
 import { getRemediationLink } from '../utils/threatUtils'
 
-export default function ThreatModal({ vulnerability, onClose }) {
+export default function ThreatModal({ vulnerability, onClose, techniqueMap = {} }) {
   if (!vulnerability) {
     return null
   }
 
   const remediationLink = getRemediationLink(vulnerability)
+  const cwes = Array.isArray(vulnerability.cwes) ? vulnerability.cwes : []
+  const techniques = cwes
+    .map((cwe) => techniqueMap[cwe])
+    .filter(Boolean)
+    .filter((t, i, arr) => arr.findIndex((x) => x.id === t.id) === i)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true">
@@ -39,6 +44,23 @@ export default function ThreatModal({ vulnerability, onClose }) {
             <dt className="text-xs uppercase tracking-wider text-slate-400">Required Action</dt>
             <dd className="mt-1 text-slate-300">{vulnerability.requiredAction}</dd>
           </div>
+          {techniques.length > 0 && (
+            <div>
+              <dt className="text-xs uppercase tracking-wider text-slate-400">ATT&CK Techniques</dt>
+              <dd className="mt-1 flex flex-wrap gap-2">
+                {techniques.map((t) => (
+                  <span
+                    key={t.id}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-violet-500/40 bg-violet-500/10 px-2 py-1 text-xs text-violet-200"
+                  >
+                    <span className="font-mono font-semibold">{t.id}</span>
+                    <span className="text-violet-300/80">{t.name}</span>
+                    <span className="text-violet-400/60">({t.tactic})</span>
+                  </span>
+                ))}
+              </dd>
+            </div>
+          )}
         </dl>
 
         <a
