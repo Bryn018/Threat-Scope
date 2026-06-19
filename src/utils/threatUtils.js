@@ -1,4 +1,4 @@
-export const KEV_FEED_URL = '/kev/sites/default/files/feeds/known_exploited_vulnerabilities.json'
+export const KEV_FEED_URL = '/sites/default/files/feeds/known_exploited_vulnerabilities.json'
 
 export function getThreatLevel(vulnerability) {
   if (!vulnerability) {
