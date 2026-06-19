@@ -82,3 +82,39 @@ export function normalizeVulnerabilities(payload) {
 
   return []
 }
+
+export function buildCweBreakdown(vulnerabilities, maxEntries = 8) {
+  const counts = new Map()
+  for (const v of vulnerabilities) {
+    const cwes = Array.isArray(v.cwes) ? v.cwes : []
+    for (const cwe of cwes) {
+      counts.set(cwe, (counts.get(cwe) || 0) + 1)
+    }
+  }
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, maxEntries)
+    .map(([name, value]) => ({ name, value }))
+}
+
+export function buildTimelineRows(vulnerabilities) {
+  if (!vulnerabilities.length) return []
+  const counts = new Map()
+  for (const v of vulnerabilities) {
+    const date = v.dateAdded?.slice(0, 10)
+    if (!date) continue
+    const key = date.slice(0, 7) // YYYY-MM
+    counts.set(key, (counts.get(key) || 0) + 1)
+  }
+  return [...counts.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, count]) => ({ date, count }))
+}
+
+export function filterByCwe(vulnerabilities, cwe) {
+  if (!cwe) return vulnerabilities
+  return vulnerabilities.filter(v => {
+    const cwes = Array.isArray(v.cwes) ? v.cwes : []
+    return cwes.includes(cwe)
+  })
+}

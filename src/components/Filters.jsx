@@ -8,7 +8,7 @@ const WINDOW_OPTIONS = [
   { label: 'last 90d', value: '90' },
 ]
 
-export default function Filters({ value, onChange, severity, onSeverityChange, vendor, onVendorChange, sortOrder, onSortOrderChange, vendors, windowDays, onWindowChange }) {
+export default function Filters({ value, onChange, severity, onSeverityChange, vendor, onVendorChange, sortOrder, onSortOrderChange, vendors, windowDays, onWindowChange, cwe, onCweChange, cwes }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -37,10 +37,22 @@ export default function Filters({ value, onChange, severity, onSeverityChange, v
             className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-white/40 focus:outline-none"
           >
             <option value="">All vendors</option>
-            {vendors.map((entry) => (
+            {(vendors || []).map((entry) => (
               <option key={entry.name} value={entry.name}>{entry.name}</option>
             ))}
           </select>
+          {Array.isArray(cwes) && cwes.length > 0 && (
+            <select
+              value={cwe ?? ''}
+              onChange={(event) => onCweChange(event.target.value)}
+              className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-white/40 focus:outline-none"
+            >
+              <option value="">All weaknesses</option>
+              {cwes.map((entry) => (
+                <option key={entry.name} value={entry.name}>{entry.name}</option>
+              ))}
+            </select>
+          )}
           <select
             value={windowDays ?? ''}
             onChange={(event) => {

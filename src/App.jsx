@@ -9,8 +9,11 @@ import {
   KEV_FEED_URL,
   normalizeVulnerabilities,
   filterVulnerabilities,
+  filterByCwe,
   getThreatLevel,
   buildVendorBreakdown,
+  buildCweBreakdown,
+  buildTimelineRows,
   dateDaysAgo,
 } from './utils/threatUtils'
 
@@ -49,6 +52,7 @@ function App() {
   const [dataSource, setDataSource] = useState('')
   const [severity, setSeverity] = useState('')
   const [vendor, setVendor] = useState('')
+  const [cwe, setCwe] = useState('')
   const [sortOrder, setSortOrder] = useState('newest')
   const [windowDays, setWindowDays] = useState(undefined)
 
@@ -145,7 +149,7 @@ function App() {
   const filteredVulnerabilities = useMemo(() => {
     const base = filterVulnerabilities(vulnerabilities, query)
     const latestCutoff = windowDays ? dateDaysAgo(Number(windowDays)) : undefined
-    return base.filter((vulnerability) => {
+    return filterByCwe(base, cwe).filter((vulnerability) => {
       if (!severity) return true
       return deriveSeverity(vulnerability) === severity
     })
@@ -186,6 +190,8 @@ function App() {
       topVendor: topVendor?.name ?? '—',
     }
   }, [vulnerabilities])
+
+  const cweCounts = useMemo(() => buildCweBreakdown(vulnerabilities, 10), [vulnerabilities])
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -235,6 +241,9 @@ function App() {
               vendors={vendorCounts}
               windowDays={windowDays}
               onWindowChange={setWindowDays}
+              cwe={cwe}
+              onCweChange={setCwe}
+              cwes={cweCounts}
             />
 
             <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -249,6 +258,7 @@ function App() {
             <Charts
               vulnerabilities={filteredVulnerabilities}
               onFilterVendor={setVendor}
+              onFilterCwe={setCwe}
               onFilterSeverity={(severityKey) => setSeverity((current) => (current === severityKey ? '' : severityKey))}
             />
 
