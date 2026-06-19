@@ -8,13 +8,6 @@ const WINDOW_OPTIONS = [
   { label: 'last 90d', value: '90' },
 ]
 
-function dateDaysAgo(days) {
-  const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  d.setDate(d.getDate() - days)
-  return d.toISOString().slice(0, 10)
-}
-
 export default function Filters({ value, onChange, severity, onSeverityChange, vendor, onVendorChange, sortOrder, onSortOrderChange, vendors, windowDays, onWindowChange }) {
   return (
     <div className="flex flex-col gap-3">

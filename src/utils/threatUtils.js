@@ -1,5 +1,12 @@
 export const KEV_FEED_URL = '/sites/default/files/feeds/known_exploited_vulnerabilities.json'
 
+export function dateDaysAgo(days) {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() - days)
+  return d.toISOString().slice(0, 10)
+}
+
 export function getThreatLevel(vulnerability) {
   if (!vulnerability) {
     return 'standard'

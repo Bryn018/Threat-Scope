@@ -11,6 +11,7 @@ import {
   filterVulnerabilities,
   getThreatLevel,
   buildVendorBreakdown,
+  dateDaysAgo,
 } from './utils/threatUtils'
 
 const STATIC_DATA_PATH = '/data/cisa-kev.json'
