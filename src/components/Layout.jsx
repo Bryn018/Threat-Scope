@@ -82,7 +82,7 @@ export default function Layout() {
         {/* Footer */}
         <div className="border-t border-white/10 px-5 py-4">
           <p className="text-[10px] uppercase tracking-wider text-slate-600">Threat Scope v2.0</p>
-          <p className="mt-1 text-[10px] text-slate-600">Sapit P. Brian · Bryn018</p>
+          <p className="mt-1 text-[10px] text-slate-600">Waly · Bryn018</p>
         </div>
       </aside>
 

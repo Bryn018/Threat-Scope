@@ -1,4 +1,4 @@
-import { BookOpen, ExternalLink, Shield, Wrench, Globe, GraduationCap, Briefcase } from 'lucide-react'
+import { BookOpen, ExternalLink, Shield, Wrench, Globe, GraduationCap } from 'lucide-react'
 
 const RESOURCE_CATEGORIES = [
   {
@@ -75,85 +75,16 @@ const RESOURCE_CATEGORIES = [
   },
 ]
 
-const PROJECTS = [
-  {
-    name: 'Threat Scope',
-    desc: 'SOC-style dashboard for CISA KEV vulnerabilities with real-time filtering, charts, and ATT&CK mapping.',
-    url: 'https://threatscope.insights.autos',
-    tags: ['React', 'CISA KEV', 'ATT&CK'],
-  },
-  {
-    name: 'Spotics',
-    desc: 'Client-side Last.fm listening analytics dashboard. Zero server, no Spotify Developer account needed.',
-    url: 'https://spotics.insights.autos',
-    tags: ['Last.fm', 'Analytics', 'Client-side'],
-  },
-  {
-    name: 'GuardY',
-    desc: 'Defensive telemetry pipeline with structured JSONL logging for security monitoring.',
-    url: 'https://github.com/Bryn018/GuardY',
-    tags: ['Python', 'Telemetry', 'Logging'],
-  },
-  {
-    name: 'Sparky',
-    desc: 'CLI tool for checking secure routing protocol statuses (RPKI/BGP) via the RIPEstat API.',
-    url: 'https://github.com/Bryn018/Sparky',
-    tags: ['CLI', 'BGP', 'RPKI'],
-  },
-  {
-    name: 'Net Anomaly Detector',
-    desc: 'ML-powered network anomaly detection using Scapy and IsolationForest with live capture.',
-    url: 'https://github.com/Bryn018/Net-Anomaly-Detector',
-    tags: ['Python', 'Scapy', 'ML'],
-  },
-  {
-    name: 'TOTP Auth',
-    desc: 'Security-first Node.js starter for email/password auth with TOTP 2FA and lockout protection.',
-    url: 'https://github.com/Bryn018/totp-auth-starter',
-    tags: ['Node.js', 'TOTP', 'Auth'],
-  },
-]
-
 export default function Resources() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">Security Resources</h1>
         <p className="mt-0.5 text-sm text-slate-400">
-          Curated collection of security tools, databases, frameworks, and my projects
+          Curated collection of security tools, databases, frameworks, and communities
         </p>
       </div>
 
-      {/* Projects showcase */}
-      <section className="mb-8">
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
-          <Briefcase className="h-5 w-5 text-sky-400" />
-          Featured Projects
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {PROJECTS.map((project) => (
-            <a
-              key={project.name}
-              href={project.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-sky-500/40"
-            >
-              <h3 className="text-sm font-semibold text-white group-hover:text-sky-300">{project.name}</h3>
-              <p className="mt-1.5 text-xs text-slate-400 line-clamp-2">{project.desc}</p>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {project.tags.map((tag) => (
-                  <span key={tag} className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] text-slate-400">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </a>
-          ))}
-        </div>
-      </section>
-
-      {/* Resource categories */}
       <div className="space-y-6">
         {RESOURCE_CATEGORIES.map((category) => (
           <section key={category.title}>
@@ -180,16 +111,6 @@ export default function Resources() {
             </div>
           </section>
         ))}
-      </div>
-
-      {/* Footer note */}
-      <div className="mt-8 rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-center">
-        <p className="text-xs text-slate-500">
-          Threat Scope v2.0 — Built by Sapit P. Brian (Bryn018) · Cybersecurity Engineer
-        </p>
-        <p className="mt-1 text-xs text-slate-600">
-          8+ Cisco Certifications · AttackIQ · MITRE ATT&CK v13
-        </p>
       </div>
     </div>
   )
