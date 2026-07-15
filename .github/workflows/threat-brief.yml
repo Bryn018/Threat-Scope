@@ -97,6 +97,7 @@ jobs:
 
           out = "\n".join(L)
           open("threat-brief.md", "w").write(out)
+          open("docs/threat-brief.md", "w").write(out)
           print("Wrote threat-brief.md —", len(added), "new KEVs,", len(priority), "priority")
 
           # Update baseline for next run.
@@ -107,7 +108,7 @@ jobs:
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          git add threat-brief.md public/data/_kev_baseline.json
+          git add threat-brief.md docs/threat-brief.md public/data/_kev_baseline.json
           if ! git diff --cached --quiet; then
             git commit -m "brief: daily threat intelligence digest"
             git push
