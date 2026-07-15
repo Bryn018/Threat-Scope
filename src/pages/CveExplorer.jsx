@@ -90,7 +90,7 @@ export default function CveExplorer() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Search CVEs by keyword, product, or CVE-ID (e.g., 'Apache', 'CVE-2024-1234')"
-            className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-500 focus:outline-none"
+            className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none"
           />
         </div>
         <select
@@ -106,7 +106,7 @@ export default function CveExplorer() {
         </select>
         <button
           type="submit"
-          className="rounded-xl bg-sky-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-sky-500"
+          className="rounded-xl bg-sky-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-sky-500"
         >
           Search
         </button>
@@ -117,7 +117,7 @@ export default function CveExplorer() {
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-slate-400">
             {data?.totalResults?.toLocaleString() || 0} results for "{searchTerm}"
-            {lastUpdated && <span className="ml-2 text-slate-600">• Updated {lastUpdated.toLocaleTimeString()}</span>}
+            {lastUpdated && <span className="ml-2 text-slate-400">• Updated {lastUpdated.toLocaleTimeString()}</span>}
           </p>
         </div>
       )}
@@ -159,14 +159,14 @@ export default function CveExplorer() {
                       </span>
                     </div>
                     <p className="mt-1.5 text-sm text-slate-300 line-clamp-2">{desc}</p>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
                       <span>Published: {published}</span>
                       {cve?.references?.length > 0 && (
                         <span>{cve.references.length} reference{cve.references.length > 1 ? 's' : ''}</span>
                       )}
                     </div>
                   </div>
-                  <ExternalLink className="h-4 w-4 shrink-0 text-slate-500" />
+                  <ExternalLink className="h-4 w-4 shrink-0 text-slate-400" />
                 </div>
               </div>
             )
@@ -207,9 +207,9 @@ export default function CveExplorer() {
       {/* Initial state */}
       {!searchTerm && !isLoading && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-12 text-center">
-          <Info className="mx-auto h-10 w-10 text-slate-600" />
+          <Info className="mx-auto h-10 w-10 text-slate-400" />
           <p className="mt-3 text-sm text-slate-400">Search the NVD database to explore CVEs</p>
-          <p className="mt-1 text-xs text-slate-600">Try "Apache", "Windows", "CVE-2024", or any product name</p>
+          <p className="mt-1 text-xs text-slate-400">Try "Apache", "Windows", "CVE-2024", or any product name</p>
         </div>
       )}
 
@@ -227,13 +227,13 @@ export default function CveExplorer() {
 
             <div className="mt-4 space-y-4">
               <div>
-                <h3 className="text-xs uppercase tracking-wider text-slate-500">Description</h3>
+                <h3 className="text-xs uppercase tracking-wider text-slate-400">Description</h3>
                 <p className="mt-1 text-sm text-slate-200">{selectedCve?.descriptions?.find((d) => d.lang === 'en')?.value || 'No description'}</p>
               </div>
 
               {getCveScore(selectedCve) > 0 && (
                 <div>
-                  <h3 className="text-xs uppercase tracking-wider text-slate-500">CVSS Score</h3>
+                  <h3 className="text-xs uppercase tracking-wider text-slate-400">CVSS Score</h3>
                   <p className={`mt-1 text-lg font-bold ${severityColor(getCveScore(selectedCve))}`}>
                     {getCveScore(selectedCve)} — {getCveSeverity(selectedCve)}
                   </p>
@@ -242,7 +242,7 @@ export default function CveExplorer() {
 
               {selectedCve?.references?.length > 0 && (
                 <div>
-                  <h3 className="text-xs uppercase tracking-wider text-slate-500">References</h3>
+                  <h3 className="text-xs uppercase tracking-wider text-slate-400">References</h3>
                   <ul className="mt-2 space-y-1">
                     {selectedCve.references.slice(0, 10).map((ref, i) => (
                       <li key={i}>

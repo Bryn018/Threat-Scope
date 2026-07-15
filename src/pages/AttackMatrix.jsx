@@ -151,7 +151,7 @@ export default function AttackMatrix() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search techniques by ID, name, or keyword..."
-                className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none"
               />
             </div>
           </div>
@@ -167,7 +167,7 @@ export default function AttackMatrix() {
                         <h2 className="text-sm font-semibold text-white">
                           {TACTIC_NAMES[tactic]}
                         </h2>
-                        <p className="text-xs text-slate-500">{techs.length} techniques</p>
+                        <p className="text-xs text-slate-400">{techs.length} techniques</p>
                       </div>
                       <button
                         onClick={() => setSelectedTactic(tactic)}
@@ -188,7 +188,7 @@ export default function AttackMatrix() {
                         </button>
                       ))}
                       {techs.length > 12 && (
-                        <span className="rounded-md border border-slate-800 px-2 py-1 text-xs text-slate-500">
+                        <span className="rounded-md border border-slate-800 px-2 py-1 text-xs text-slate-400">
                           +{techs.length - 12} more
                         </span>
                       )}
@@ -223,7 +223,7 @@ export default function AttackMatrix() {
                         ))}
                       </div>
                     </div>
-                    <Crosshair className="h-4 w-4 shrink-0 text-slate-600" />
+                    <Crosshair className="h-4 w-4 shrink-0 text-slate-400" />
                   </div>
                 </div>
               ))}
@@ -245,12 +245,12 @@ export default function AttackMatrix() {
 
             <div className="mt-4 space-y-4">
               <div>
-                <h4 className="text-xs uppercase tracking-wider text-slate-500">Description</h4>
+                <h4 className="text-xs uppercase tracking-wider text-slate-400">Description</h4>
                 <p className="mt-1 whitespace-pre-line text-sm text-slate-200">{selectedTechnique.description}</p>
               </div>
 
               <div>
-                <h4 className="text-xs uppercase tracking-wider text-slate-500">Tactics</h4>
+                <h4 className="text-xs uppercase tracking-wider text-slate-400">Tactics</h4>
                 <div className="mt-1 flex flex-wrap gap-2">
                   {selectedTechnique.tactics.map((t) => (
                     <span key={t} className="rounded-full border border-violet-500/40 bg-violet-500/10 px-2.5 py-0.5 text-xs text-violet-300">
@@ -262,14 +262,14 @@ export default function AttackMatrix() {
 
               {selectedTechnique.platforms?.length > 0 && (
                 <div>
-                  <h4 className="text-xs uppercase tracking-wider text-slate-500">Platforms</h4>
+                  <h4 className="text-xs uppercase tracking-wider text-slate-400">Platforms</h4>
                   <p className="mt-1 text-sm text-slate-300">{selectedTechnique.platforms.join(', ')}</p>
                 </div>
               )}
 
               {selectedTechnique.detection && (
                 <div>
-                  <h4 className="text-xs uppercase tracking-wider text-slate-500">Detection</h4>
+                  <h4 className="text-xs uppercase tracking-wider text-slate-400">Detection</h4>
                   <p className="mt-1 whitespace-pre-line text-sm text-slate-300">{selectedTechnique.detection}</p>
                 </div>
               )}

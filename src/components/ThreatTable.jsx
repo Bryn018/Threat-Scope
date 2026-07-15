@@ -27,7 +27,7 @@ function ThreatBadge({ level }) {
 }
 
 function EpssCell({ epss }) {
-  if (epss == null) return <span className="text-slate-600">—</span>
+  if (epss == null) return <span className="text-slate-400">—</span>
   const band = epssBand(epss)
   return (
     <span className={`font-medium ${epssStyles[band]}`}>

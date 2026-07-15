@@ -204,7 +204,7 @@ export default function KevDashboard() {
         </div>
         <div className="flex items-center gap-3">
           {lastUpdated && (
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-slate-400">
               Updated {lastUpdated.toLocaleTimeString()} {dataSource && `• ${dataSource}`}
             </span>
           )}

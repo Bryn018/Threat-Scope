@@ -106,7 +106,7 @@ export default function ThreatIntel() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={`Search ${activeTab === 'advisories' ? 'advisories' : 'news'}...`}
-            className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-500 focus:outline-none"
+            className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none"
           />
         </div>
       </div>
@@ -144,7 +144,7 @@ export default function ThreatIntel() {
                         {(stripHtml(item.description || '')).slice(0, 300)}
                         {(stripHtml(item.description || '')).length > 300 ? '...' : ''}
                       </p>
-                      <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
+                      <div className="mt-2 flex items-center gap-3 text-xs text-slate-400">
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {formatDate(item.pubDate)}

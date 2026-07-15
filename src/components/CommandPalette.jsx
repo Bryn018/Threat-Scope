@@ -79,13 +79,13 @@ export default function CommandPalette({ open, onOpenChange }) {
               else if (e.key === 'Enter') { e.preventDefault(); choose(results[active]) }
             }}
             placeholder="Jump to a page…"
-            className="w-full bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
+            className="w-full bg-transparent text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none"
           />
-          <kbd className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-500">ESC</kbd>
+          <kbd className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400">ESC</kbd>
         </div>
         <ul className="max-h-72 overflow-y-auto py-2">
           {results.length === 0 && (
-            <li className="px-4 py-3 text-sm text-slate-500">No matches</li>
+            <li className="px-4 py-3 text-sm text-slate-400">No matches</li>
           )}
           {results.map((item, i) => (
             <li key={item.to}>
@@ -95,7 +95,7 @@ export default function CommandPalette({ open, onOpenChange }) {
                 className={`flex w-full items-center justify-between px-4 py-2.5 text-left ${i === active ? 'bg-sky-500/15' : ''}`}
               >
                 <span className={`text-sm ${i === active ? 'text-sky-200' : 'text-slate-200'}`}>{item.label}</span>
-                <span className="flex items-center gap-2 text-xs text-slate-500">
+                <span className="flex items-center gap-2 text-xs text-slate-400">
                   {item.hint}
                   {i === active && <CornerDownLeft className="h-3.5 w-3.5" />}
                 </span>

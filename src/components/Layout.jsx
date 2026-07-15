@@ -51,7 +51,7 @@ export default function Layout() {
           <Shield className="h-7 w-7 text-sky-400" />
           <div>
             <h1 className="text-base font-bold tracking-tight text-white">Threat Scope</h1>
-            <p className="text-[10px] uppercase tracking-widest text-slate-500">SOC Dashboard</p>
+            <p className="text-[10px] uppercase tracking-widest text-slate-400">SOC Dashboard</p>
           </div>
           <button
             className="ml-auto rounded-md p-1 text-slate-400 hover:text-white lg:hidden"
@@ -85,8 +85,8 @@ export default function Layout() {
 
         {/* Footer */}
         <div className="border-t border-white/10 px-5 py-4">
-          <p className="text-[10px] uppercase tracking-wider text-slate-600">Threat Scope v2.0</p>
-          <p className="mt-1 text-[10px] text-slate-600">Waly · Bryn018</p>
+          <p className="text-[10px] uppercase tracking-wider text-slate-400">Threat Scope v2.0</p>
+          <p className="mt-1 text-[10px] text-slate-400">Waly · Bryn018</p>
         </div>
       </aside>
 

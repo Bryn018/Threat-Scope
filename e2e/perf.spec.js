@@ -6,7 +6,7 @@ test.describe('performance budget', () => {
   test('KEV dashboard loads under budget', async ({ page }) => {
     const start = Date.now()
     await page.goto('/#/', { waitUntil: 'domcontentloaded' })
-    await page.getByRole('heading', { level: 1 }).waitFor()
+    await page.getByRole('heading', { name: 'KEV Dashboard' }).waitFor()
     const ttfb = Date.now() - start
     expect(ttfb).toBeLessThan(8000) // generous for cold edge cache
 
@@ -27,7 +27,7 @@ test.describe('performance budget', () => {
     const responses = []
     page.on('response', (r) => responses.push(r))
     await page.goto('/#/')
-    await page.getByRole('heading', { level: 1 }).waitFor()
+    await page.getByRole('heading', { name: 'KEV Dashboard' }).waitFor()
     const total = responses
       .filter((r) => r.url().includes('threatscope.insights.autos'))
       .reduce((sum, r) => sum + (Number(r.headers()['content-length'] || 0)), 0)

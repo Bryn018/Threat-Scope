@@ -103,9 +103,9 @@ export default function Resources() {
                 >
                   <div>
                     <p className="text-sm font-medium text-slate-200 group-hover:text-sky-300">{item.name}</p>
-                    <p className="mt-0.5 text-xs text-slate-500">{item.desc}</p>
+                    <p className="mt-0.5 text-xs text-slate-400">{item.desc}</p>
                   </div>
-                  <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-slate-600 group-hover:text-sky-400" />
+                  <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-slate-400 group-hover:text-sky-400" />
                 </a>
               ))}
             </div>

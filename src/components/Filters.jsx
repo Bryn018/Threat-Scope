@@ -24,13 +24,14 @@ export default function Filters({ value, onChange, severity, onSeverityChange, v
             value={value}
             onChange={(event) => onChange(event.target.value)}
             placeholder="Search vulnerabilities (CVE, vendor, note)"
-            className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-white/40 focus:outline-none"
+            className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-400 focus:border-white/40 focus:outline-none"
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <select
             value={sortOrder}
             onChange={(event) => onSortOrderChange(event.target.value)}
+            aria-label="Sort order"
             className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-white/40 focus:outline-none"
           >
             <option value="newest">Newest first</option>
@@ -41,6 +42,7 @@ export default function Filters({ value, onChange, severity, onSeverityChange, v
           <select
             value={vendor}
             onChange={(event) => onVendorChange(event.target.value)}
+            aria-label="Filter by vendor"
             className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-white/40 focus:outline-none"
           >
             <option value="">All vendors</option>
@@ -52,6 +54,7 @@ export default function Filters({ value, onChange, severity, onSeverityChange, v
             <select
               value={cwe ?? ''}
               onChange={(event) => onCweChange(event.target.value)}
+              aria-label="Filter by weakness (CWE)"
               className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-white/40 focus:outline-none"
             >
               <option value="">All weaknesses</option>
@@ -63,6 +66,7 @@ export default function Filters({ value, onChange, severity, onSeverityChange, v
           <select
             value={epss ?? ''}
             onChange={(event) => onEpssChange(event.target.value)}
+            aria-label="Filter by EPSS band"
             className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-white/40 focus:outline-none"
           >
             <option value="">All EPSS bands</option>
@@ -76,6 +80,7 @@ export default function Filters({ value, onChange, severity, onSeverityChange, v
               const next = event.target.value
               onWindowChange(next ? Number(next) : undefined)
             }}
+            aria-label="Filter by date added"
             className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-white/40 focus:outline-none"
           >
             <option value="">All time</option>

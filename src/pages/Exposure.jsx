@@ -7,7 +7,7 @@ const EPSS_PATH = '/data/epss-scores.json'
 const EXPLOITS_PATH = '/data/exploits-by-cve.json'
 
 function EpssPill({ value }) {
-  if (value == null) return <span className="text-slate-600">—</span>
+  if (value == null) return <span className="text-slate-400">—</span>
   const pct = value * 100
   const color = pct >= 90 ? 'text-red-300' : pct >= 50 ? 'text-orange-300' : pct >= 10 ? 'text-amber-300' : 'text-slate-400'
   return <span className={`font-medium ${color}`}>{pct.toFixed(1)}%</span>
@@ -110,7 +110,7 @@ export default function Exposure() {
           </p>
         </div>
         {lastUpdated && (
-          <span className="text-xs text-slate-500">Updated {lastUpdated.toLocaleTimeString()} • auto-synced</span>
+          <span className="text-xs text-slate-400">Updated {lastUpdated.toLocaleTimeString()} • auto-synced</span>
         )}
       </div>
 
@@ -131,7 +131,7 @@ export default function Exposure() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Filter by vendor..."
-              className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-white/40 focus:outline-none sm:max-w-xs"
+              className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-400 focus:border-white/40 focus:outline-none sm:max-w-xs"
             />
             <div className="flex flex-wrap items-center gap-2 text-xs">
               {[
@@ -176,7 +176,7 @@ export default function Exposure() {
                     <td className="px-3 py-3">{r.kev}</td>
                     <td className="px-3 py-3">
                       <span className={r.exploit > 0 ? 'text-red-300' : 'text-slate-400'}>{r.exploit}</span>
-                      <span className="ml-1 text-xs text-slate-500">({r.exploitPct}%)</span>
+                      <span className="ml-1 text-xs text-slate-400">({r.exploitPct}%)</span>
                     </td>
                     <td className="px-3 py-3">
                       <span className={r.ransomware > 0 ? 'text-rose-300' : 'text-slate-400'}>{r.ransomware}</span>
@@ -191,7 +191,7 @@ export default function Exposure() {
               </tbody>
             </table>
           </div>
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-slate-400">
             Click any vendor for per-CVE detail. EPSS = FIRST.org Exploit Prediction Scoring System.
             Exploit counts reflect public Exploit-DB entries matched by CVE.
           </p>
@@ -268,11 +268,11 @@ function VendorDetail({ vendor }) {
                 <td className="px-3 py-2 font-medium text-slate-100">{v.cveID}</td>
                 <td className="px-3 py-2">{v.vulnerabilityName}</td>
                 <td className="px-3 py-2"><EpssPill value={v.epss} /></td>
-                <td className="px-3 py-2">{v.hasExploit ? <span className="text-red-300">Yes</span> : <span className="text-slate-500">—</span>}</td>
+                <td className="px-3 py-2">{v.hasExploit ? <span className="text-red-300">Yes</span> : <span className="text-slate-400">—</span>}</td>
                 <td className="px-3 py-2">
                   {(v.knownRansomwareCampaignUse || '').toLowerCase() === 'known'
                     ? <span className="text-rose-300">Known</span>
-                    : <span className="text-slate-500">—</span>}
+                    : <span className="text-slate-400">—</span>}
                 </td>
               </tr>
             ))}

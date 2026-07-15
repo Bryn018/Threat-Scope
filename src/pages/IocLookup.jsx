@@ -131,7 +131,7 @@ export default function IocLookup() {
               value={inputValue}
               onChange={(e) => { setInputValue(e.target.value); setError('') }}
               placeholder="Enter IP address, domain, or file hash (MD5/SHA1/SHA256)"
-              className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-500 focus:outline-none font-mono"
+              className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none font-mono"
             />
             {iocType && iocType !== 'unknown' && (
               <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-slate-700 px-2 py-0.5 text-[10px] text-slate-400">
@@ -142,7 +142,7 @@ export default function IocLookup() {
           <button
             type="submit"
             disabled={!inputValue.trim() || isLoading}
-            className="rounded-xl bg-sky-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40"
+            className="rounded-xl bg-sky-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40"
           >
             {isLoading ? 'Looking up...' : 'Lookup'}
           </button>
@@ -166,7 +166,7 @@ export default function IocLookup() {
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wider text-slate-500 mb-3">External Analysis Links</p>
+            <p className="text-xs uppercase tracking-wider text-slate-400 mb-3">External Analysis Links</p>
             {Object.entries(results)
               .filter(([key, val]) => key.endsWith('Url') && val)
               .map(([key, url]) => {
@@ -184,10 +184,10 @@ export default function IocLookup() {
                     className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-800/40 px-4 py-3 text-sm text-slate-200 transition hover:border-sky-500/50 hover:text-white"
                   >
                     <span className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-slate-500" />
+                      <Shield className="h-4 w-4 text-slate-400" />
                       Analyze on {label}
                     </span>
-                    <Search className="h-4 w-4 text-slate-500" />
+                    <Search className="h-4 w-4 text-slate-400" />
                   </a>
                 )
               })}
@@ -230,11 +230,11 @@ export default function IocLookup() {
                 className="flex w-full items-center justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-2.5 text-left transition hover:border-slate-700"
               >
                 <div className="flex items-center gap-3">
-                  {(() => { const Icon = getIocIcon(item.type); return <Icon className="h-4 w-4 text-slate-500" /> })()}
+                  {(() => { const Icon = getIocIcon(item.type); return <Icon className="h-4 w-4 text-slate-400" /> })()}
                   <span className="font-mono text-sm text-slate-300">{item.value}</span>
-                  <span className="text-xs text-slate-500">{getIocLabel(item.type)}</span>
+                  <span className="text-xs text-slate-400">{getIocLabel(item.type)}</span>
                 </div>
-                <span className="text-xs text-slate-600">{item.timestamp.toLocaleTimeString()}</span>
+                <span className="text-xs text-slate-400">{item.timestamp.toLocaleTimeString()}</span>
               </button>
             ))}
           </div>
@@ -244,9 +244,9 @@ export default function IocLookup() {
       {/* Empty state */}
       {!results && !isLoading && history.length === 0 && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-12 text-center">
-          <Search className="mx-auto h-10 w-10 text-slate-600" />
+          <Search className="mx-auto h-10 w-10 text-slate-400" />
           <p className="mt-3 text-sm text-slate-400">Enter an IOC to investigate</p>
-          <p className="mt-1 text-xs text-slate-600">Supports IPs, domains, MD5, SHA-1, and SHA-256 hashes</p>
+          <p className="mt-1 text-xs text-slate-400">Supports IPs, domains, MD5, SHA-1, and SHA-256 hashes</p>
         </div>
       )}
     </div>

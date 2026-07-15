@@ -19,16 +19,16 @@ test.describe('navigation swaps views', () => {
   for (const [path, heading] of PAGES) {
     test(`loads ${path} with heading "${heading}"`, async ({ page }) => {
       await page.goto(`/#${path}`)
-      await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading)
+      await expect(page.getByRole('heading', { name: heading })).toBeVisible()
     })
   }
 
   // The exact regression: ATT&CK -> CVE must swap (URL changes AND view swaps).
   test('ATT&CK -> CVE swaps the view', async ({ page }) => {
     await page.goto('/#/attack')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('ATT&CK Matrix')
+    await expect(page.getByRole('heading', { name: 'ATT&CK Matrix' })).toBeVisible()
     await page.goto('/#/cves')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('CVE Explorer')
+    await expect(page.getByRole('heading', { name: 'CVE Explorer' })).toBeVisible()
     // previous view must be gone
     await expect(page.getByText('Tactics', { exact: false })).toHaveCount(0)
   })
@@ -45,12 +45,12 @@ test.describe('Phase A features', () => {
   test('command palette opens on Cmd/Ctrl+K and navigates', async ({ page }) => {
     await page.goto('/#/')
     await page.keyboard.press('Control+k')
-    const input = page.getByPlaceholder('Jump to a page or run a command…')
+    const input = page.getByPlaceholder('Jump to a page…')
     await expect(input).toBeVisible()
     await input.fill('exposure')
     await page.keyboard.press('Enter')
     await expect(page).toHaveURL(/#\/exposure/)
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Technology Exposure')
+    await expect(page.getByRole('heading', { name: 'Technology Exposure' })).toBeVisible()
   })
 
   test('Tech Exposure page renders real vendor data', async ({ page }) => {
