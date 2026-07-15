@@ -29,7 +29,7 @@ jobs:
           cyclonedx-npm --output-file sbom.cdx.json --package-lock-only
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom.cdx.json
