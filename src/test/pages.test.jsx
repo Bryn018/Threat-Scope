@@ -1,7 +1,6 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { lazy } from 'react'
 
 // Smoke tests: confirm each route renders without throwing and shows its
 // heading. Data is read from the local /public mirrored JSON via the dev
