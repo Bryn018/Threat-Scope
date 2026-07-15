@@ -5,20 +5,16 @@ import Filters from '../components/Filters'
 import Charts from '../components/Charts'
 import ThreatTable from '../components/ThreatTable'
 import ThreatModal from '../components/ThreatModal'
-import { useFetch } from '../hooks/useFetch'
 import {
   normalizeVulnerabilities,
   filterVulnerabilities,
   filterByCwe,
-  getThreatLevel,
   buildVendorBreakdown,
   buildCweBreakdown,
-  buildAttackTechniqueBreakdown,
   loadTechniqueMap,
   dateDaysAgo,
 } from '../utils/threatUtils'
 
-const KEV_FEED_URL = 'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json'
 const STATIC_DATA_PATH = '/data/cisa-kev.json'
 
 function todayLabel() {
@@ -54,7 +50,7 @@ export default function KevDashboard() {
   const [dataSource, setDataSource] = useState('')
 
   async function loadThreats(signal) {
-    const urls = [KEV_FEED_URL, STATIC_DATA_PATH]
+    const urls = [STATIC_DATA_PATH]
     let lastError = null
     for (const url of urls) {
       try {
@@ -67,7 +63,7 @@ export default function KevDashboard() {
         const nextVulnerabilities = normalizeVulnerabilities(payload)
         if (nextVulnerabilities.length > 0) {
           setVulnerabilities(nextVulnerabilities)
-          setDataSource(url === STATIC_DATA_PATH ? 'static snapshot' : 'live CISA feed')
+          setDataSource('auto-synced snapshot')
           setLastUpdated(new Date())
           return
         }
@@ -200,7 +196,7 @@ export default function KevDashboard() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
-            Live
+            Auto-synced
           </span>
         </div>
       </div>

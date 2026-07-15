@@ -1,0 +1,50 @@
+name: CI
+
+# Validates every push / PR to main: installs, lints, type-checks via the
+# production build, and runs the test suite. Keeps the manually-committed
+# /docs build in sync with /src by failing if docs is stale.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test -- --run
+
+      - name: Ensure committed /docs is up to date
+        run: |
+          # Rebuild and confirm docs/ matches the new build for the key entry files.
+          npm run build >/dev/null
+          if ! git diff --quiet -- docs/index.html docs/assets; then
+            echo "::error::docs/ is out of sync with the build. Run 'npm run build' and commit /docs."
+            git diff --stat -- docs/index.html docs/assets
+            exit 1
+          fi
+          echo "docs/ is in sync with src."

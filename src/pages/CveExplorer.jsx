@@ -1,7 +1,6 @@
-import { useState, useMemo } from 'react'
-import { Search, ExternalLink, AlertTriangle, Info } from 'lucide-react'
+import { useState } from 'react'
+import { Search, ExternalLink, Info } from 'lucide-react'
 import { useFetch } from '../hooks/useFetch'
-import KpiCard from '../components/KpiCard'
 
 const NVD_API_BASE = 'https://services.nvd.nist.gov/rest/json/cves/2.0'
 
@@ -26,14 +25,6 @@ function severityBg(score) {
   if (score >= 7) return 'border-orange-500/40 bg-orange-500/10'
   if (score >= 4) return 'border-yellow-500/40 bg-yellow-500/10'
   return 'border-green-500/40 bg-green-500/10'
-}
-
-function severityLabel(score) {
-  if (score >= 9) return 'Critical'
-  if (score >= 7) return 'High'
-  if (score >= 4) return 'Medium'
-  if (score > 0) return 'Low'
-  return 'None'
 }
 
 function getCveScore(cve) {

@@ -1,9 +1,9 @@
-import { StrictMode, Suspense } from 'react'
+import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import Layout from './components/Layout'
-import { lazy } from 'react'
+import ErrorBoundary from './components/ErrorBoundary'
 
 const KevDashboard = lazy(() => import('./pages/KevDashboard'))
 const CveExplorer = lazy(() => import('./pages/CveExplorer'))
@@ -24,21 +24,23 @@ function LoadingFallback() {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <HashRouter>
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<KevDashboard />} />
-            <Route path="/cves" element={<CveExplorer />} />
-            <Route path="/attack" element={<AttackMatrix />} />
-            <Route path="/intel" element={<ThreatIntel />} />
-            <Route path="/iocs" element={<IocLookup />} />
-            <Route path="/exploits" element={<ExploitTracker />} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </Suspense>
-    </HashRouter>
+    <ErrorBoundary>
+      <HashRouter>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<KevDashboard />} />
+              <Route path="/cves" element={<CveExplorer />} />
+              <Route path="/attack" element={<AttackMatrix />} />
+              <Route path="/intel" element={<ThreatIntel />} />
+              <Route path="/iocs" element={<IocLookup />} />
+              <Route path="/exploits" element={<ExploitTracker />} />
+              <Route path="/resources" element={<Resources />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </HashRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )

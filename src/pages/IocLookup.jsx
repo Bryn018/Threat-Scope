@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { Search, AlertTriangle, CheckCircle, XCircle, Info, Shield, Globe, Hash } from 'lucide-react'
+import { Search, Info, Shield, Globe, Hash } from 'lucide-react'
 
-const ABUSEIPDB_API = 'https://api.abuseipdb.com/api/v2/check'
 const VIRUSTOTAL_UI_BASE = 'https://www.virustotal.com/gui'
 
 function detectIocType(value) {
@@ -112,6 +111,7 @@ export default function IocLookup() {
 
   const iocType = inputValue.trim() ? detectIocType(inputValue.trim()) : null
   const IocIcon = iocType ? getIocIcon(iocType) : Search
+
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">

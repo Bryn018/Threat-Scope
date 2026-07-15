@@ -2,25 +2,11 @@ import { useState, useMemo } from 'react'
 import { Rss, ExternalLink, AlertTriangle, Shield, Clock, RefreshCw } from 'lucide-react'
 import { useFetch } from '../hooks/useFetch'
 
-// CISA Alerts RSS feed
-const CISA_ALERTS_RSS = 'https://www.cisa.gov/uscert/ncas/alerts.xml'
-const CISA_CURRENT_ACTIVITY_RSS = 'https://www.cisa.gov/uscert/ncas/current-activity.xml'
-
-// We'll use a CORS proxy-free approach — fetch RSS via rss2json or parse directly
-// Since we're client-side only, we'll use the CISA JSON feeds and also parse RSS
-
-function parseRSSItems(xmlText) {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(xmlText, 'text/xml')
-  const items = doc.querySelectorAll('item')
-  return Array.from(items).map((item) => ({
-    title: item.querySelector('title')?.textContent || '',
-    link: item.querySelector('link')?.textContent || '',
-    description: item.querySelector('description')?.textContent || '',
-    pubDate: item.querySelector('pubDate')?.textContent || '',
-    guid: item.querySelector('guid')?.textContent || '',
-  }))
-}
+// CISA feed data is mirrored server-side into the site's own origin by the
+// sync-threat-feeds workflow (CISA's RSS endpoints are CORS-blocked and 301
+// redirect, so direct browser fetch is unreliable).
+const ADVISORIES_URL = '/data/cisa-advisories.json'
+const NEWS_URL = '/data/cisa-news.json'
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
@@ -40,33 +26,23 @@ function stripHtml(html) {
 }
 
 export default function ThreatIntel() {
-  const [activeTab, setActiveTab] = useState('alerts')
+  const [activeTab, setActiveTab] = useState('advisories')
   const [searchTerm, setSearchTerm] = useState('')
 
-  // CISA Alerts
-  const { data: alertsData, isLoading: alertsLoading, error: alertsError, refresh: refreshAlerts } = useFetch(
-    CISA_ALERTS_RSS,
-    {
-      transform: (text) => parseRSSItems(text),
-      initialData: [],
-      ttl: 10 * 60 * 1000,
-    }
+  const { data: advisoriesData, isLoading: advisoriesLoading, error: advisoriesError, refresh: refreshAdvisories } = useFetch(
+    ADVISORIES_URL,
+    { initialData: [], ttl: 3 * 60 * 1000 }
   )
 
-  // CISA Current Activity
-  const { data: activityData, isLoading: activityLoading, error: activityError, refresh: refreshActivity } = useFetch(
-    CISA_CURRENT_ACTIVITY_RSS,
-    {
-      transform: (text) => parseRSSItems(text),
-      initialData: [],
-      ttl: 10 * 60 * 1000,
-    }
+  const { data: newsData, isLoading: newsLoading, error: newsError, refresh: refreshNews } = useFetch(
+    NEWS_URL,
+    { initialData: [], ttl: 3 * 60 * 1000 }
   )
 
-  const currentItems = activeTab === 'alerts' ? (alertsData || []) : (activityData || [])
-  const currentLoading = activeTab === 'alerts' ? alertsLoading : activityLoading
-  const currentError = activeTab === 'alerts' ? alertsError : activityError
-  const currentRefresh = activeTab === 'alerts' ? refreshAlerts : refreshActivity
+  const currentItems = activeTab === 'advisories' ? (advisoriesData || []) : (newsData || [])
+  const currentLoading = activeTab === 'advisories' ? advisoriesLoading : newsLoading
+  const currentError = activeTab === 'advisories' ? advisoriesError : newsError
+  const currentRefresh = activeTab === 'advisories' ? refreshAdvisories : refreshNews
 
   const filteredItems = useMemo(() => {
     if (!searchTerm.trim()) return currentItems
@@ -74,7 +50,7 @@ export default function ThreatIntel() {
     return currentItems.filter(
       (item) =>
         item.title.toLowerCase().includes(q) ||
-        stripHtml(item.description).toLowerCase().includes(q)
+        stripHtml(item.description || '').toLowerCase().includes(q)
     )
   }, [currentItems, searchTerm])
 
@@ -84,7 +60,7 @@ export default function ThreatIntel() {
         <div>
           <h1 className="text-2xl font-bold text-white">Threat Intelligence</h1>
           <p className="mt-0.5 text-sm text-slate-400">
-            CISA security alerts and current activity — real-time advisories
+            CISA advisories and news — real-time from the official CISA feed
           </p>
         </div>
         <button
@@ -99,26 +75,26 @@ export default function ThreatIntel() {
       {/* Tabs */}
       <div className="mb-6 flex gap-2">
         <button
-          onClick={() => { setActiveTab('alerts'); setSearchTerm('') }}
+          onClick={() => { setActiveTab('advisories'); setSearchTerm('') }}
           className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${
-            activeTab === 'alerts'
+            activeTab === 'advisories'
               ? 'border-amber-500/70 bg-amber-500/10 text-amber-300'
               : 'border-slate-700 bg-slate-900/40 text-slate-400 hover:border-slate-500'
           }`}
         >
           <AlertTriangle className="h-4 w-4" />
-          CISA Alerts
+          CISA Advisories
         </button>
         <button
-          onClick={() => { setActiveTab('activity'); setSearchTerm('') }}
+          onClick={() => { setActiveTab('news'); setSearchTerm('') }}
           className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${
-            activeTab === 'activity'
+            activeTab === 'news'
               ? 'border-sky-500/70 bg-sky-500/10 text-sky-300'
               : 'border-slate-700 bg-slate-900/40 text-slate-400 hover:border-slate-500'
           }`}
         >
           <Rss className="h-4 w-4" />
-          Current Activity
+          CISA News
         </button>
       </div>
 
@@ -129,7 +105,7 @@ export default function ThreatIntel() {
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={`Search ${activeTab === 'alerts' ? 'alerts' : 'activity'}...`}
+            placeholder={`Search ${activeTab === 'advisories' ? 'advisories' : 'news'}...`}
             className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-500 focus:outline-none"
           />
         </div>
@@ -138,12 +114,12 @@ export default function ThreatIntel() {
       {/* Loading / Error */}
       {currentLoading && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm text-slate-300">
-          Loading {activeTab === 'alerts' ? 'CISA alerts' : 'current activity'}...
+          Loading CISA {activeTab === 'advisories' ? 'advisories' : 'news'}...
         </div>
       )}
       {currentError && (
         <div className="rounded-xl border border-red-500/70 bg-red-500/10 p-6 text-sm text-red-200">
-          Error loading feed: {currentError}. CISA RSS feeds may be temporarily unavailable.
+          Error loading feed: {currentError}. The CISA feed may still be syncing — try refreshing shortly.
         </div>
       )}
 
@@ -158,15 +134,15 @@ export default function ThreatIntel() {
             <div className="space-y-3">
               {filteredItems.slice(0, 30).map((item, idx) => (
                 <article
-                  key={item.guid || idx}
+                  key={item.guid || item.link || idx}
                   className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-slate-700"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
                       <h3 className="text-sm font-semibold text-white">{item.title}</h3>
-                      <p className="mt-1.5 text-xs text-slate-400 line-clamp-3">
-                        {stripHtml(item.description).slice(0, 300)}
-                        {stripHtml(item.description).length > 300 ? '...' : ''}
+                      <p className="mt-1.5 line-clamp-3 text-xs text-slate-400">
+                        {(stripHtml(item.description || '')).slice(0, 300)}
+                        {(stripHtml(item.description || '')).length > 300 ? '...' : ''}
                       </p>
                       <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
                         <span className="flex items-center gap-1">
@@ -198,9 +174,9 @@ export default function ThreatIntel() {
           <div>
             <p className="text-sm font-medium text-slate-200">About CISA Feeds</p>
             <p className="mt-1 text-xs text-slate-400">
-              CISA Alerts provide timely information about current security issues, vulnerabilities, and exploits.
-              Current Activity entries highlight recently exploited vulnerabilities and emerging threats.
-              Data is fetched directly from CISA's public RSS feeds in real-time.
+              CISA Advisories provide timely guidance on active threats and vulnerabilities.
+              CISA News highlights emerging security developments. Both are mirrored from the
+              official CISA feed and refreshed automatically.
             </p>
           </div>
         </div>

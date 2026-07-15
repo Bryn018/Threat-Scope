@@ -1,4 +1,4 @@
-export const KEV_FEED_URL = '/sites/default/files/feeds/known_exploited_vulnerabilities.json'
+export const KEV_STATIC_PATH = '/data/cisa-kev.json'
 
 export function dateDaysAgo(days) {
   const d = new Date()
@@ -25,7 +25,7 @@ export function getThreatLevel(vulnerability) {
 
 export function getRemediationLink(vulnerability) {
   const notes = vulnerability?.notes ?? ''
-  const match = notes.match(/https?:\/\/[^\s)]+/i)
+  const match = notes.match(/https?:\/\/[^\\s)]+/i)
 
   if (match) {
     return match[0]
@@ -95,20 +95,6 @@ export function buildCweBreakdown(vulnerabilities, maxEntries = 8) {
     .sort((a, b) => b[1] - a[1])
     .slice(0, maxEntries)
     .map(([name, value]) => ({ name, value }))
-}
-
-export function buildTimelineRows(vulnerabilities) {
-  if (!vulnerabilities.length) return []
-  const counts = new Map()
-  for (const v of vulnerabilities) {
-    const date = v.dateAdded?.slice(0, 10)
-    if (!date) continue
-    const key = date.slice(0, 7) // YYYY-MM
-    counts.set(key, (counts.get(key) || 0) + 1)
-  }
-  return [...counts.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([date, count]) => ({ date, count }))
 }
 
 export function filterByCwe(vulnerabilities, cwe) {

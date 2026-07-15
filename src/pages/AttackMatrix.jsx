@@ -2,16 +2,10 @@ import { useState, useMemo } from 'react'
 import { Search, ExternalLink, Crosshair } from 'lucide-react'
 import { useFetch } from '../hooks/useFetch'
 
-// Use the ATT&CK STIX data from the official MITRE GitHub — but the techniques-only subset
-// This is much smaller than the full enterprise-attack.json (~50MB)
-// We use the attack-flow-data repo which has a pre-processed techniques JSON
-const ATTACK_TECHNIQUES_URL = 'https://raw.githubusercontent.com/mitre-attack/attack-stix-data/master/enterprise-attack/attack-pattern--b81c809b-d824-46b3-8221-6390b6e4f8b5.json'
-
-// Instead, let's use the official ATT&CK GitHub repo's structured data
-// The attack-stix-data repo has individual files per object — too many requests
-// Better approach: use a pre-built JSON from a CDN or the ATT&CK website's own data
-// Actually the best free approach: use the ATT&CK STIX via a CORS-friendly CDN
-const ATTACK_DATA_URL = 'https://cdn.jsdelivr.net/gh/mitre-attack/attack-stix-data@master/enterprise-attack/enterprise-attack.json'
+// MITRE ATT&CK Enterprise data — mirrored server-side into the site's own
+// origin by the sync-threat-feeds workflow (the raw STIX is 50MB+ and is
+// CORS-blocked, so we serve a slim curated copy from /data).
+const ATTACK_DATA_URL = '/data/attack-enterprise.json'
 
 const TACTIC_ORDER = [
   'reconnaissance',
@@ -53,32 +47,9 @@ export default function AttackMatrix() {
   const [selectedTactic, setSelectedTactic] = useState('')
 
   const { data: stixData, isLoading, error } = useFetch(ATTACK_DATA_URL, {
-    transform: (raw) => {
-      if (!raw?.objects) return { techniques: [], tacticNames: TACTIC_NAMES }
-      const techniques = []
-
-      for (const obj of raw.objects) {
-        if (obj.type === 'attack-pattern' && !obj.x_mitre_is_subtechnique && obj.revoked !== true && !obj.x_mitre_deprecated) {
-          const tacticShortnames = (obj.kill_chain_phases || [])
-            .filter((p) => p.kill_chain_name === 'mitre-attack')
-            .map((p) => p.phase_name)
-
-          techniques.push({
-            id: obj.external_references?.[0]?.external_id || '—',
-            name: obj.name,
-            description: (obj.description || '').slice(0, 500),
-            tactics: tacticShortnames,
-            url: obj.external_references?.[0]?.url || '#',
-            platforms: obj.x_mitre_platforms || [],
-            detection: (obj.x_mitre_detection || '').slice(0, 500),
-          })
-        }
-      }
-
-      return { techniques, tacticNames: TACTIC_NAMES }
-    },
-    initialData: { techniques: [], tacticNames: TACTIC_NAMES },
-    ttl: 60 * 60 * 1000, // Cache for 1 hour — STIX data changes rarely
+    transform: (raw) => ({ techniques: raw?.techniques || [] }),
+    initialData: { techniques: [] },
+    ttl: 24 * 60 * 60 * 1000, // Refresh once per day (mirror handles upstream freshness)
   })
 
   const { techniques } = stixData
@@ -94,7 +65,7 @@ export default function AttackMatrix() {
         (t) =>
           t.id.toLowerCase().includes(q) ||
           t.name.toLowerCase().includes(q) ||
-          t.description.toLowerCase().includes(q)
+          (t.description || '').toLowerCase().includes(q)
       )
     }
     return result
@@ -125,13 +96,13 @@ export default function AttackMatrix() {
       {isLoading && (
         <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm text-slate-300">
           <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
-          Loading ATT&CK data from MITRE GitHub... This may take a moment.
+          Loading ATT&CK data...
         </div>
       )}
 
       {error && (
         <div className="rounded-xl border border-red-500/70 bg-red-500/10 p-6 text-sm text-red-200">
-          Error loading ATT&CK data: {error}. The MITRE GitHub may be temporarily unavailable.
+          Error loading ATT&CK data: {error}. The dataset may still be syncing — please refresh shortly.
         </div>
       )}
 
@@ -243,7 +214,7 @@ export default function AttackMatrix() {
                         <span className="font-mono text-sm font-bold text-sky-400">{tech.id}</span>
                         <span className="text-sm font-medium text-white">{tech.name}</span>
                       </div>
-                      <p className="mt-1 text-xs text-slate-400 line-clamp-2">{tech.description.slice(0, 200)}...</p>
+                      <p className="mt-1 text-xs text-slate-400 line-clamp-2">{(tech.description || '').slice(0, 200)}...</p>
                       <div className="mt-2 flex flex-wrap gap-1">
                         {tech.tactics.map((t) => (
                           <span key={t} className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] text-slate-400">
@@ -275,7 +246,7 @@ export default function AttackMatrix() {
             <div className="mt-4 space-y-4">
               <div>
                 <h4 className="text-xs uppercase tracking-wider text-slate-500">Description</h4>
-                <p className="mt-1 text-sm text-slate-200 whitespace-pre-line">{selectedTechnique.description}</p>
+                <p className="mt-1 whitespace-pre-line text-sm text-slate-200">{selectedTechnique.description}</p>
               </div>
 
               <div>
@@ -299,7 +270,7 @@ export default function AttackMatrix() {
               {selectedTechnique.detection && (
                 <div>
                   <h4 className="text-xs uppercase tracking-wider text-slate-500">Detection</h4>
-                  <p className="mt-1 text-sm text-slate-300 whitespace-pre-line">{selectedTechnique.detection}</p>
+                  <p className="mt-1 whitespace-pre-line text-sm text-slate-300">{selectedTechnique.detection}</p>
                 </div>
               )}
 
