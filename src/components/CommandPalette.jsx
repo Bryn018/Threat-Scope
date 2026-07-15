@@ -13,26 +13,24 @@ const PAGES = [
   { to: '/resources', label: 'Resources', hint: 'Tools & references' },
 ]
 
-export default function CommandPalette() {
-  const [open, setOpen] = useState(false)
+export default function CommandPalette({ open, onOpenChange }) {
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const navigate = useNavigate()
   const inputRef = useRef(null)
-  const containerRef = useRef(null)
 
   useEffect(() => {
     function onKey(e) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
-        setOpen((o) => !o)
+        onOpenChange(!open)
       } else if (e.key === 'Escape' && open) {
-        setOpen(false)
+        onOpenChange(false)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open])
+  }, [open, onOpenChange])
 
   useEffect(() => {
     if (open) {
@@ -54,7 +52,7 @@ export default function CommandPalette() {
 
   function choose(item) {
     if (!item) return
-    setOpen(false)
+    onOpenChange(false)
     navigate(item.to)
   }
 
@@ -62,11 +60,10 @@ export default function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 pt-[12vh] px-4"
-      onClick={() => setOpen(false)}
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 px-4 pt-[12vh]"
+      onClick={() => onOpenChange(false)}
     >
       <div
-        ref={containerRef}
         className="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
