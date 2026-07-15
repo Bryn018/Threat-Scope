@@ -11,7 +11,9 @@ import {
   BookOpen,
   Menu,
   X,
+  Radar,
 } from 'lucide-react'
+import CommandPalette from './CommandPalette'
 
 const NAV_ITEMS = [
   { to: '/', icon: Activity, label: 'KEV Dashboard' },
@@ -20,6 +22,7 @@ const NAV_ITEMS = [
   { to: '/intel', icon: FileWarning, label: 'Threat Intel' },
   { to: '/iocs', icon: Search, label: 'IOC Lookup' },
   { to: '/exploits', icon: Bomb, label: 'Exploit Tracker' },
+  { to: '/exposure', icon: Radar, label: 'Tech Exposure' },
   { to: '/resources', icon: BookOpen, label: 'Resources' },
 ]
 
@@ -102,10 +105,23 @@ export default function Layout() {
           </div>
         </header>
 
+        {/* Desktop command-palette trigger */}
+        <header className="hidden items-center justify-end gap-3 border-b border-white/10 bg-slate-950/60 px-4 py-3 backdrop-blur lg:flex">
+          <button
+            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-400 hover:border-white/30 hover:text-slate-200"
+          >
+            <Search className="h-3.5 w-3.5" />
+            Quick nav
+            <kbd className="rounded border border-slate-700 px-1 text-[10px]">⌘K</kbd>
+          </button>
+        </header>
+
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
+        <CommandPalette />
       </div>
     </div>
   )

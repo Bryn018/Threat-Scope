@@ -133,3 +133,49 @@ export function buildAttackTechniqueBreakdown(vulnerabilities, techniqueMap = {}
     .slice(0, maxEntries)
     .map(([name, value]) => ({ name, value }))
 }
+
+export const EPSS_BANDS = [
+  { key: 'critical', label: 'Critical (≥0.9)', min: 0.9, color: 'text-red-300' },
+  { key: 'high', label: 'High (0.5–0.9)', min: 0.5, color: 'text-orange-300' },
+  { key: 'medium', label: 'Medium (0.1–0.5)', min: 0.1, color: 'text-amber-300' },
+  { key: 'low', label: 'Low (<0.1)', min: 0, color: 'text-slate-300' },
+]
+
+export function epssBand(epss) {
+  if (epss == null) return 'low'
+  for (const b of EPSS_BANDS) if (epss >= b.min) return b.key
+  return 'low'
+}
+
+export function attachEpss(vulnerabilities, epssMap = {}) {
+  return vulnerabilities.map((v) => {
+    const s = epssMap[v.cveID]
+    return s ? { ...v, epss: s.epss, epssPercentile: s.percentile } : v
+  })
+}
+
+// Per-vendor / technology exposure rollup (real keys only: CVE, EPSS, ransomware).
+export function buildVendorExposure(vulnerabilities, epssMap = {}, exploitsByCve = {}) {
+  const vendors = new Map()
+  for (const v of vulnerabilities) {
+    const name = v.vendorProject || 'Unknown'
+    const rec = vendors.get(name) || { vendor: name, kev: 0, exploit: 0, ransomware: 0, epssMax: 0, epssSum: 0, epssN: 0 }
+    rec.kev += 1
+    if (v.cveID in exploitsByCve) rec.exploit += 1
+    if ((v.knownRansomwareCampaignUse || '').toLowerCase() === 'known') rec.ransomware += 1
+    const s = epssMap[v.cveID]
+    if (s) {
+      rec.epssMax = Math.max(rec.epssMax, s.epss)
+      rec.epssSum += s.epss
+      rec.epssN += 1
+    }
+    vendors.set(name, rec)
+  }
+  return [...vendors.values()]
+    .map((r) => ({
+      ...r,
+      epssAvg: r.epssN ? r.epssSum / r.epssN : 0,
+      exploitPct: r.kev ? Math.round((r.exploit / r.kev) * 100) : 0,
+    }))
+    .sort((a, b) => b.kev - a.kev || b.ransomware - a.ransomware)
+}

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, AlertTriangle, ShieldCheck, ShieldX, Clock, RefreshCw } from 'lucide-react'
+import { Activity, AlertTriangle, ShieldCheck, ShieldX, Clock, RefreshCw, TrendingUp, Download } from 'lucide-react'
 import KpiCard from '../components/KpiCard'
 import Filters from '../components/Filters'
 import Charts from '../components/Charts'
 import ThreatTable from '../components/ThreatTable'
 import ThreatModal from '../components/ThreatModal'
+import { exportCsv, exportStix, downloadJson } from '../utils/exportUtils'
 import {
   normalizeVulnerabilities,
   filterVulnerabilities,
@@ -13,9 +14,12 @@ import {
   buildCweBreakdown,
   loadTechniqueMap,
   dateDaysAgo,
+  attachEpss,
+  epssBand,
 } from '../utils/threatUtils'
 
 const STATIC_DATA_PATH = '/data/cisa-kev.json'
+const EPSS_PATH = '/data/epss-scores.json'
 
 function todayLabel() {
   return new Date().toLocaleDateString('en-CA')
@@ -43,11 +47,25 @@ export default function KevDashboard() {
   const [sortOrder, setSortOrder] = useState('newest')
   const [windowDays, setWindowDays] = useState(undefined)
   const [techniqueMap, setTechniqueMap] = useState({})
+  const [epssMap, setEpssMap] = useState({})
+  const [epssFilter, setEpssFilter] = useState('')
   const [vulnerabilities, setVulnerabilities] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [lastUpdated, setLastUpdated] = useState(null)
   const [dataSource, setDataSource] = useState('')
+
+  async function loadEpss(signal) {
+    try {
+      const res = await fetch(EPSS_PATH, { signal })
+      if (res.ok) {
+        const map = await res.json()
+        if (!signal.aborted) setEpssMap(map)
+      }
+    } catch (e) {
+      if (e.name !== 'AbortError') { /* EPSS is an enhancement; ignore failure */ }
+    }
+  }
 
   async function loadThreats(signal) {
     const urls = [STATIC_DATA_PATH]
@@ -81,6 +99,7 @@ export default function KevDashboard() {
     async function initialise() {
       try {
         await loadThreats(controller.signal)
+        await loadEpss(controller.signal)
       } catch (fetchError) {
         if (fetchError.name !== 'AbortError') {
           setError('Failed to load threat feed. Please try again.')
@@ -118,10 +137,15 @@ export default function KevDashboard() {
     return () => clearInterval(interval)
   }, [isLoading])
 
-  const vendorCounts = useMemo(() => buildVendorBreakdown(vulnerabilities, 12), [vulnerabilities])
+  const enrichedVulnerabilities = useMemo(
+    () => attachEpss(vulnerabilities, epssMap),
+    [vulnerabilities, epssMap],
+  )
+
+  const vendorCounts = useMemo(() => buildVendorBreakdown(enrichedVulnerabilities, 12), [enrichedVulnerabilities])
 
   const filteredVulnerabilities = useMemo(() => {
-    const base = filterVulnerabilities(vulnerabilities, query)
+    const base = filterVulnerabilities(enrichedVulnerabilities, query)
     const latestCutoff = windowDays ? dateDaysAgo(Number(windowDays)) : undefined
     return filterByCwe(base, cwe)
       .filter((v) => {
@@ -133,34 +157,42 @@ export default function KevDashboard() {
         return (v.vendorProject || 'Unknown') === vendor
       })
       .filter((v) => {
+        if (epssFilter) return epssBand(v.epss) === epssFilter
+        return true
+      })
+      .filter((v) => {
         if (!latestCutoff) return true
         return (v.dateAdded ?? '') >= latestCutoff
       })
       .slice()
       .sort((a, b) => {
+        if (sortOrder === 'epss') return (b.epss ?? -1) - (a.epss ?? -1)
         const severityOrder = { Known: 0, Expected: 1, No: 2 }
         if (sortOrder === 'severity') return (severityOrder[deriveSeverity(a)] ?? 9) - (severityOrder[deriveSeverity(b)] ?? 9)
         const order = a.dateAdded.localeCompare(b.dateAdded)
         return sortOrder === 'newest' ? -order : order
       })
-  }, [vulnerabilities, query, severity, vendor, sortOrder, windowDays, cwe])
+  }, [enrichedVulnerabilities, query, severity, vendor, sortOrder, windowDays, cwe, epssFilter])
 
   const metrics = useMemo(() => {
-    const total = vulnerabilities.length
-    const critical = vulnerabilities.filter((v) => (v.knownRansomwareCampaignUse ?? '').toLowerCase() === 'known').length
-    const high = vulnerabilities.filter((v) => /immediate|immediately/i.test(v.requiredAction ?? '')).length
-    const ransomware = vulnerabilities.filter((v) => (v.knownRansomwareCampaignUse ?? '').toLowerCase() === 'known').length
-    const incomplete = vulnerabilities.filter((v) => deriveIncompleteStatus(v) === 'yes').length
-    const todayCount = vulnerabilities.filter((v) => v.dateAdded === todayLabel()).length
-    const topVendor = buildVendorBreakdown(vulnerabilities, 1)[0]
+    const total = enrichedVulnerabilities.length
+    const critical = enrichedVulnerabilities.filter((v) => (v.knownRansomwareCampaignUse ?? '').toLowerCase() === 'known').length
+    const high = enrichedVulnerabilities.filter((v) => /immediate|immediately/i.test(v.requiredAction ?? '')).length
+    const ransomware = enrichedVulnerabilities.filter((v) => (v.knownRansomwareCampaignUse ?? '').toLowerCase() === 'known').length
+    const incomplete = enrichedVulnerabilities.filter((v) => deriveIncompleteStatus(v) === 'yes').length
+    const todayCount = enrichedVulnerabilities.filter((v) => v.dateAdded === todayLabel()).length
+    const topVendor = buildVendorBreakdown(enrichedVulnerabilities, 1)[0]
+    const epssCritical = enrichedVulnerabilities.filter((v) => (v.epss ?? 0) >= 0.9).length
+    const epssHigh = enrichedVulnerabilities.filter((v) => (v.epss ?? 0) >= 0.5 && (v.epss ?? 0) < 0.9).length
     return {
       total, critical, high, ransomware, incomplete,
       todayCount,
       topVendor: topVendor?.name ?? '—',
+      epssCritical, epssHigh,
     }
-  }, [vulnerabilities])
+  }, [enrichedVulnerabilities])
 
-  const cweCounts = useMemo(() => buildCweBreakdown(vulnerabilities, 10), [vulnerabilities])
+  const cweCounts = useMemo(() => buildCweBreakdown(enrichedVulnerabilities, 10), [enrichedVulnerabilities])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
@@ -190,6 +222,33 @@ export default function KevDashboard() {
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Refresh
+          </button>
+          <button
+            onClick={() => {
+              const cols = [
+                { key: 'cveID', value: (v) => v.cveID },
+                { key: 'vendorProject', value: (v) => v.vendorProject },
+                { key: 'vulnerabilityName', value: (v) => v.vulnerabilityName },
+                { key: 'epss', value: (v) => (v.epss != null ? v.epss : '') },
+                { key: 'knownRansomwareCampaignUse', value: (v) => v.knownRansomwareCampaignUse },
+                { key: 'dateAdded', value: (v) => v.dateAdded },
+              ]
+              exportCsv(filteredVulnerabilities, cols, `threatscope-kev-${Date.now()}.csv`)
+            }}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500 hover:text-white"
+          >
+            <Download className="h-3.5 w-3.5" />
+            CSV
+          </button>
+          <button
+            onClick={() => {
+              const bundle = exportStix(filteredVulnerabilities, epssMap)
+              downloadJson(bundle, `threatscope-kev-${Date.now()}.stix.json`)
+            }}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500 hover:text-white"
+          >
+            <Download className="h-3.5 w-3.5" />
+            STIX
           </button>
           <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-300">
             <span className="relative inline-flex h-2 w-2">
@@ -228,15 +287,18 @@ export default function KevDashboard() {
             cwe={cwe}
             onCweChange={setCwe}
             cwes={cweCounts}
+            epss={epssFilter}
+            onEpssChange={setEpssFilter}
           />
 
           <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <KpiCard icon={Activity} label="Tracked Vulnerabilities" value={metrics.total.toLocaleString()} onClick={() => { setQuery(''); setSeverity(''); setVendor(''); setWindowDays(undefined) }} />
-            <KpiCard icon={AlertTriangle} label="Critical Alerts" value={metrics.critical.toLocaleString()} tone="alert" onClick={() => { setQuery(''); setSeverity('Known'); setVendor(''); setWindowDays(undefined) }} />
-            <KpiCard icon={ShieldCheck} label="High Alerts" value={metrics.high.toLocaleString()} tone="warning" onClick={() => { setQuery(''); setSeverity('Expected'); setVendor(''); setWindowDays(undefined) }} />
-            <KpiCard icon={ShieldX} label="Ransomware Related" value={metrics.ransomware.toLocaleString()} onClick={() => { setQuery(''); setSeverity('Known'); setVendor(''); setWindowDays(undefined) }} />
-            <KpiCard icon={Clock} label="Added Today" value={`${metrics.todayCount}`} onClick={() => { setQuery(''); setSeverity(''); setVendor(''); setWindowDays(1) }} />
-            <KpiCard label="Top Vendor" value={metrics.topVendor} onClick={() => { setQuery(''); setSeverity(''); setVendor(metrics.topVendor); setWindowDays(undefined) }} />
+            <KpiCard icon={Activity} label="Tracked Vulnerabilities" value={metrics.total.toLocaleString()} onClick={() => { setQuery(''); setSeverity(''); setVendor(''); setWindowDays(undefined); setEpssFilter('') }} />
+            <KpiCard icon={AlertTriangle} label="Critical Alerts" value={metrics.critical.toLocaleString()} tone="alert" onClick={() => { setQuery(''); setSeverity('Known'); setVendor(''); setWindowDays(undefined); setEpssFilter('') }} />
+            <KpiCard icon={TrendingUp} label="EPSS ≥0.9 (Critical)" value={metrics.epssCritical.toLocaleString()} tone="alert" onClick={() => { setQuery(''); setSeverity(''); setVendor(''); setWindowDays(undefined); setEpssFilter('critical') }} />
+            <KpiCard icon={ShieldCheck} label="High Alerts" value={metrics.high.toLocaleString()} tone="warning" onClick={() => { setQuery(''); setSeverity('Expected'); setVendor(''); setWindowDays(undefined); setEpssFilter('') }} />
+            <KpiCard icon={ShieldX} label="Ransomware Related" value={metrics.ransomware.toLocaleString()} onClick={() => { setQuery(''); setSeverity('Known'); setVendor(''); setWindowDays(undefined); setEpssFilter('') }} />
+            <KpiCard icon={Clock} label="Added Today" value={`${metrics.todayCount}`} onClick={() => { setQuery(''); setSeverity(''); setVendor(''); setWindowDays(1); setEpssFilter('') }} />
+            <KpiCard label="Top Vendor" value={metrics.topVendor} onClick={() => { setQuery(''); setSeverity(''); setVendor(metrics.topVendor); setWindowDays(undefined); setEpssFilter('') }} />
           </section>
 
           <Charts

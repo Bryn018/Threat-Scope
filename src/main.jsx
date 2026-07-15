@@ -15,6 +15,7 @@ import AttackMatrix from './pages/AttackMatrix'
 import ThreatIntel from './pages/ThreatIntel'
 import IocLookup from './pages/IocLookup'
 import ExploitTracker from './pages/ExploitTracker'
+import Exposure from './pages/Exposure'
 import Resources from './pages/Resources'
 import NotFound from './pages/NotFound'
 
@@ -30,6 +31,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="/intel" element={<ThreatIntel />} />
             <Route path="/iocs" element={<IocLookup />} />
             <Route path="/exploits" element={<ExploitTracker />} />
+            <Route path="/exposure" element={<Exposure />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="*" element={<NotFound />} />
           </Route>

@@ -6,9 +6,14 @@ name: Sync threat-intel feeds
 #
 # Sources mirrored:
 #   - CISA KEV catalog            -> data/cisa-kev.json        (hourly)
+#   - EPSS exploit-probability     -> data/epss-scores.json      (hourly, keyed to KEV CVEs)
 #   - MITRE ATT&CK STIX (enterprise) -> data/attack-enterprise.json (daily)
 #   - Exploit-DB (Offensive Security) -> data/exploit-db.json (every 6h)
 #   - CISA advisories + news RSS  -> data/cisa-advisories.json + data/cisa-news.json (every 3h)
+#
+# Derived/curated artifacts:
+#   - data/technique-map.json      (CWE -> ATT&CK techniques, rebuilt with ATT&CK)
+#   - data/exploits-by-cve.json    (CVE -> [exploit ids], rebuilt with Exploit-DB)
 #
 # Each fetch is sanity-checked before it is allowed to replace the committed
 # file, so a broken/incomplete upstream response can never wipe good data.
@@ -43,7 +48,7 @@ jobs:
         with:
           ref: main
 
-      - name: Sync CISA KEV catalog
+      - name: Sync CISA KEV catalog + EPSS scores
         if: ${{ github.event.schedule == '23 * * * *' || github.event_name == 'workflow_dispatch' && (inputs.feed == '' || inputs.feed == 'kev') }}
         run: |
           set -euo pipefail
@@ -51,11 +56,36 @@ jobs:
           curl -fsSL "$URL" -o public/data/cisa-kev.json
           curl -fsSL "$URL" -o docs/data/cisa-kev.json
           python3 - <<'PY'
-          import json
+          import json, urllib.request, urllib.parse, time
           for p in ("public/data/cisa-kev.json","docs/data/cisa-kev.json"):
               d=json.load(open(p))
               assert len(d.get("vulnerabilities",[]))>500, f"{p}: suspicious dataset"
               print(p,"-> catalogVersion",d.get("catalogVersion"),"|",len(d["vulnerabilities"]),"CVEs")
+
+          # EPSS: exploit-probability for each KEV CVE (FIRST.org public API, no key).
+          # Batched 100/req. Result is a flat {cve: {epss, percentile, date}} map.
+          cves=[v["cveID"] for v in d["vulnerabilities"]]
+          assert len(cves)>500, "too few CVEs for EPSS"
+          scores={}
+          for i in range(0,len(cves),100):
+              batch=cves[i:i+100]
+              q="https://api.first.org/data/v1/epss?cve="+",".join(batch)
+              req=urllib.request.Request(q, headers={"User-Agent":"ThreatScopeBot/1.0"})
+              with urllib.request.urlopen(req, timeout=60) as r:
+                  body=json.load(r)
+              for row in body.get("data",[]):
+                  scores[row["cve"]]={
+                      "epss": float(row["epss"]),
+                      "percentile": float(row["percentile"]),
+                      "date": row.get("date",""),
+                  }
+              time.sleep(0.3)
+          # Cache the full EPSS map site-wide (used by KEV dashboard + exports).
+          for p in ("public/data/epss-scores.json","docs/data/epss-scores.json"):
+              json.dump(scores, open(p,"w"), separators=(",",":"))
+          covered=len([c for c in cves if c in scores])
+          print("epss-scores.json ->",len(scores),"scores |",covered,"/",len(cves),"KEVs covered")
+          assert covered>500, "EPSS coverage suspiciously low"
           PY
 
       - name: Sync MITRE ATT&CK (enterprise)
@@ -70,26 +100,37 @@ jobs:
           raw=json.load(open("public/data/attack-enterprise.json.tmp"))
           objs=raw.get("objects",[])
           techniques=[]
+          cwe_to_techniques={}   # CWE -> [ {id,name,tactic} ] for KEV exposure correlation
           for o in objs:
               if o.get("type")=="attack-pattern" and not o.get("x_mitre_is_subtechnique") and o.get("revoked") is not True and not o.get("x_mitre_deprecated"):
                   ph=[p.get("phase_name") for p in o.get("kill_chain_phases",[]) if p.get("kill_chain_name")=="mitre-attack"]
                   ref=o.get("external_references",[{}])
+                  ext_id=ref[0].get("external_id","") if ref else ""
+                  weaknesses=o.get("x_mitre_related_weaknesses",[])
                   techniques.append({
-                      "id": ref[0].get("external_id","") if ref else "",
+                      "id": ext_id,
                       "name": o.get("name",""),
                       "description": (o.get("description") or "")[:600],
                       "tactics": ph,
                       "url": ref[0].get("url","") if ref else "",
                       "platforms": o.get("x_mitre_platforms",[]),
                       "detection": (o.get("x_mitre_detection") or "")[:600],
+                      "weaknesses": weaknesses,
                   })
+                  for cwe in weaknesses:
+                      cwe_to_techniques.setdefault(cwe,[]).append({
+                          "id": ext_id, "name": o.get("name",""),
+                          "tactic": ph[0] if ph else "Other",
+                      })
           assert len(techniques)>150, "too few techniques"
-          out={"techniques":techniques}
-          json.dump(out,open("public/data/attack-enterprise.json","w"),separators=(",",":"))
+          json.dump({"techniques":techniques},open("public/data/attack-enterprise.json","w"),separators=(",",":"))
+          json.dump(cwe_to_techniques,open("public/data/technique-map.json","w"),separators=(",",":"))
           print("attack-enterprise.json ->",len(techniques),"techniques")
+          print("technique-map.json ->",len(cwe_to_techniques),"CWEs mapped")
           PY
           rm -f public/data/attack-enterprise.json.tmp
           cp public/data/attack-enterprise.json docs/data/attack-enterprise.json
+          cp public/data/technique-map.json docs/data/technique-map.json
 
       - name: Sync Exploit-DB
         if: ${{ github.event.schedule == '17 */6 * * *' || github.event_name == 'workflow_dispatch' && (inputs.feed == '' || inputs.feed == 'exploit') }}
@@ -120,9 +161,16 @@ jobs:
                   })
           assert len(rows)>40000, "too few exploits"
           json.dump({"exploits":rows,"total":len(rows)},open("public/data/exploit-db.json","w"),separators=(",",":"))
-          print("exploit-db.json ->",len(rows),"exploits")
+          # CVE -> [exploit refs] index for fast KEV<->exploit correlation.
+          by_cve={}
+          for r in rows:
+              if r["cve"]:
+                  by_cve.setdefault(r["cve"],[]).append({"id":r["id"],"description":r["description"],"verified":r["verified"]})
+          json.dump(by_cve,open("public/data/exploits-by-cve.json","w"),separators=(",",":"))
+          print("exploit-db.json ->",len(rows),"exploits | exploits-by-cve.json ->",len(by_cve),"CVEs")
           PY
           cp public/data/exploit-db.json docs/data/exploit-db.json
+          cp public/data/exploits-by-cve.json docs/data/exploits-by-cve.json
           rm -f public/data/exploit-db.csv
 
       - name: Sync CISA advisories + news RSS

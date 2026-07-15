@@ -1,0 +1,117 @@
+name: Threat brief (daily digest)
+
+# Produces a human-readable intelligence brief from the auto-synced feeds and
+# commits it to threat-brief.md. It diffs the current KEV catalog against the
+# last baseline (data/_kev_baseline.json) so the brief highlights what CHANGED
+# since the previous run. Runs daily + on manual dispatch.
+
+on:
+  schedule:
+    - cron: '19 6 * * *'      # 06:19 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: threat-brief
+  cancel-in-progress: false
+
+jobs:
+  brief:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Build brief
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, datetime, os
+
+          kev = json.load(open("public/data/cisa-kev.json"))
+          epss = json.load(open("public/data/epss-scores.json")) if os.path.exists("public/data/epss-scores.json") else {}
+          exploits = json.load(open("public/data/exploits-by-cve.json")) if os.path.exists("public/data/exploits-by-cve.json") else {}
+          advisories = json.load(open("public/data/cisa-advisories.json")) if os.path.exists("public/data/cisa-advisories.json") else []
+          news = json.load(open("public/data/cisa-news.json")) if os.path.exists("public/data/cisa-news.json") else []
+
+          vulns = kev.get("vulnerabilities", [])
+          baseline_path = "data/_kev_baseline.json"
+          if os.path.exists(baseline_path):
+              baseline = set(json.load(open(baseline_path)))
+          else:
+              baseline = set()
+          current = {v["cveID"] for v in vulns}
+          added = sorted(current - baseline)
+
+          def ransomware(v):
+              return (v.get("knownRansomwareCampaignUse") or "").lower() == "known"
+
+          new_items = [v for v in vulns if v["cveID"] in set(added)]
+          new_ransom = [v for v in new_items if ransomware(v)]
+          # New KEVs with high EPSS or public exploit = highest priority.
+          priority = []
+          for v in new_items:
+              s = epss.get(v["cveID"])
+              exp = v["cveID"] in exploits
+              if (s and s["epss"] >= 0.5) or exp or ransomware(v):
+                  priority.append((v, s, exp))
+
+          today = datetime.date.today().isoformat()
+          L = []
+          L.append(f"# Threat Scope — Daily Intelligence Brief ({today})\n")
+          L.append(f"**Catalog version:** {kev.get('catalogVersion','?')}  ")
+          L.append(f"**Tracked KEVs:** {len(vulns)}  ")
+          L.append(f"**New since last brief:** {len(added)}\n")
+
+          if priority:
+              L.append("## Priority additions (high EPSS / public exploit / ransomware)\n")
+              for v, s, exp in priority[:25]:
+                  bits = []
+                  if s: bits.append(f"EPSS {(s['epss']*100):.1f}%")
+                  if exp: bits.append("public exploit")
+                  if ransomware(v): bits.append("ransomware")
+                  L.append(f"- **{v['cveID']}** — {v.get('vulnerabilityName','')} ({v.get('vendorProject','')})  _{', '.join(bits)}_")
+              L.append("")
+
+          if new_items:
+              L.append(f"## All {len(new_items)} new KEVs\n")
+              for v in new_items[:60]:
+                  L.append(f"- {v['cveID']} — {v.get('vulnerabilityName','')} ({v.get('vendorProject','')})")
+              if len(new_items) > 60:
+                  L.append(f"- … and {len(new_items)-60} more")
+              L.append("")
+
+          if advisories:
+              L.append(f"## CISA advisories ({len(advisories)} latest)\n")
+              for a in advisories[:8]:
+                  L.append(f"- [{a.get('title','')}]({a.get('link','')})")
+              L.append("")
+
+          L.append("---\n")
+          L.append("_Generated automatically by Threat Scope. Data: CISA KEV, FIRST.org EPSS, Exploit-DB, CISA advisories. All sources are publicly published threat intelligence._\n")
+
+          out = "\n".join(L)
+          open("threat-brief.md", "w").write(out)
+          print("Wrote threat-brief.md —", len(added), "new KEVs,", len(priority), "priority")
+
+          # Update baseline for next run.
+          json.dump(sorted(current), open(baseline_path, "w"), separators=(",", ":"))
+          PY
+
+      - name: Commit brief + baseline
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add threat-brief.md data/_kev_baseline.json
+          if ! git diff --cached --quiet; then
+            git commit -m "brief: daily threat intelligence digest"
+            git push
+            echo "Pushed brief."
+          else
+            echo "No changes."
+          fi

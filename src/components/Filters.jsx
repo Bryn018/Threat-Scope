@@ -1,6 +1,12 @@
 import { Search } from 'lucide-react'
 
 const SEVERITY_OPTIONS = ['Known', 'Expected', 'No']
+const EPSS_OPTIONS = [
+  { label: 'EPSS Critical', value: 'critical' },
+  { label: 'EPSS High', value: 'high' },
+  { label: 'EPSS Medium', value: 'medium' },
+  { label: 'EPSS Low', value: 'low' },
+]
 const WINDOW_OPTIONS = [
   { label: 'last 24h', value: '1' },
   { label: 'last 7d', value: '7' },
@@ -8,7 +14,7 @@ const WINDOW_OPTIONS = [
   { label: 'last 90d', value: '90' },
 ]
 
-export default function Filters({ value, onChange, severity, onSeverityChange, vendor, onVendorChange, sortOrder, onSortOrderChange, vendors, windowDays, onWindowChange, cwe, onCweChange, cwes }) {
+export default function Filters({ value, onChange, severity, onSeverityChange, vendor, onVendorChange, sortOrder, onSortOrderChange, vendors, windowDays, onWindowChange, cwe, onCweChange, cwes, epss, onEpssChange }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -30,6 +36,7 @@ export default function Filters({ value, onChange, severity, onSeverityChange, v
             <option value="newest">Newest first</option>
             <option value="oldest">Oldest first</option>
             <option value="severity">Highest severity first</option>
+            <option value="epss">Highest EPSS first</option>
           </select>
           <select
             value={vendor}
@@ -53,6 +60,16 @@ export default function Filters({ value, onChange, severity, onSeverityChange, v
               ))}
             </select>
           )}
+          <select
+            value={epss ?? ''}
+            onChange={(event) => onEpssChange(event.target.value)}
+            className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs text-slate-200 focus:border-white/40 focus:outline-none"
+          >
+            <option value="">All EPSS bands</option>
+            {EPSS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
           <select
             value={windowDays ?? ''}
             onChange={(event) => {
