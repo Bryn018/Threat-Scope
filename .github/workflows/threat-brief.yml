@@ -2,7 +2,7 @@ name: Threat brief (daily digest)
 
 # Produces a human-readable intelligence brief from the auto-synced feeds and
 # commits it to threat-brief.md. It diffs the current KEV catalog against the
-# last baseline (data/_kev_baseline.json) so the brief highlights what CHANGED
+# last baseline (public/data/_kev_baseline.json) so the brief highlights what CHANGED
 # since the previous run. Runs daily + on manual dispatch.
 
 on:
@@ -40,7 +40,7 @@ jobs:
           news = json.load(open("public/data/cisa-news.json")) if os.path.exists("public/data/cisa-news.json") else []
 
           vulns = kev.get("vulnerabilities", [])
-          baseline_path = "data/_kev_baseline.json"
+          baseline_path = "public/data/_kev_baseline.json"
           if os.path.exists(baseline_path):
               baseline = set(json.load(open(baseline_path)))
           else:
@@ -107,7 +107,7 @@ jobs:
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
-          git add threat-brief.md data/_kev_baseline.json
+          git add threat-brief.md public/data/_kev_baseline.json
           if ! git diff --cached --quiet; then
             git commit -m "brief: daily threat intelligence digest"
             git push
