@@ -1,56 +1,40 @@
-import { StrictMode, Suspense, lazy } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import Layout from './components/Layout'
 import ErrorBoundary from './components/ErrorBoundary'
 
-const KevDashboard = lazy(() => import('./pages/KevDashboard'))
-const CveExplorer = lazy(() => import('./pages/CveExplorer'))
-const AttackMatrix = lazy(() => import('./pages/AttackMatrix'))
-const ThreatIntel = lazy(() => import('./pages/ThreatIntel'))
-const IocLookup = lazy(() => import('./pages/IocLookup'))
-const ExploitTracker = lazy(() => import('./pages/ExploitTracker'))
-const Resources = lazy(() => import('./pages/Resources'))
-const NotFound = lazy(() => import('./pages/NotFound'))
-
-function PageLoader() {
-  return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="text-sm text-slate-400">Loading…</div>
-    </div>
-  )
-}
-
-// Give every lazy route its OWN Suspense + ErrorBoundary. A single top-level
-// Suspense wrapping <Routes> is known to intermittently fail to swap lazy
-// routes on client-side navigation (the previous route stays mounted);
-// per-route boundaries guarantee the view always re-suspends and swaps.
-function lazyRoute(El) {
-  return (
-    <ErrorBoundary>
-      <Suspense fallback={<PageLoader />}>
-        <El />
-      </Suspense>
-    </ErrorBoundary>
-  )
-}
+// Route components are imported statically (not React.lazy). The app is small
+// (~190KB gzip) and a shared vendor chunk already holds React/charts, so eager
+// loading is fine and eliminates the react-router v7 + React.lazy route-swap
+// freeze (URL changes but the previous view stays mounted on navigation).
+import KevDashboard from './pages/KevDashboard'
+import CveExplorer from './pages/CveExplorer'
+import AttackMatrix from './pages/AttackMatrix'
+import ThreatIntel from './pages/ThreatIntel'
+import IocLookup from './pages/IocLookup'
+import ExploitTracker from './pages/ExploitTracker'
+import Resources from './pages/Resources'
+import NotFound from './pages/NotFound'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <HashRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={lazyRoute(KevDashboard)} />
-          <Route path="/cves" element={lazyRoute(CveExplorer)} />
-          <Route path="/attack" element={lazyRoute(AttackMatrix)} />
-          <Route path="/intel" element={lazyRoute(ThreatIntel)} />
-          <Route path="/iocs" element={lazyRoute(IocLookup)} />
-          <Route path="/exploits" element={lazyRoute(ExploitTracker)} />
-          <Route path="/resources" element={lazyRoute(Resources)} />
-          <Route path="*" element={lazyRoute(NotFound)} />
-        </Route>
-      </Routes>
-    </HashRouter>
+    <ErrorBoundary>
+      <HashRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<KevDashboard />} />
+            <Route path="/cves" element={<CveExplorer />} />
+            <Route path="/attack" element={<AttackMatrix />} />
+            <Route path="/intel" element={<ThreatIntel />} />
+            <Route path="/iocs" element={<IocLookup />} />
+            <Route path="/exploits" element={<ExploitTracker />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </HashRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )
