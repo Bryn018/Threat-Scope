@@ -12,6 +12,9 @@ const PAGES = [
   ['/iocs', 'IOC Lookup'],
   ['/exploits', 'Exploit Tracker'],
   ['/exposure', 'Technology Exposure'],
+  ['/actors', 'Threat Actors'],
+  ['/graph', 'Attack Graph'],
+  ['/watchlist', 'Watchlist'],
   ['/resources', 'Resources'],
 ]
 
@@ -60,5 +63,32 @@ test.describe('Phase A features', () => {
     // KPI stats + table load from the auto-synced feeds (async).
     await expect(page.getByText('WITH PUBLIC EXPLOIT')).toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('cell', { name: 'Microsoft' })).toBeVisible({ timeout: 15000 })
+  })
+})
+
+test.describe('Phase C features', () => {
+  test('Threat Actors page renders real MITRE groups + opens a profile', async ({ page }) => {
+    await page.goto('/#/actors')
+    await expect(page.getByText('Tracked actors')).toBeVisible()
+    await expect(page.getByText('174')).toBeVisible()
+    // Open the top actor (Kimsuky) and confirm techniques render.
+    await page.getByRole('button', { name: /Open .* profile/ }).first().click()
+    await expect(page.getByText(/Techniques \(\d+\)/)).toBeVisible({ timeout: 10000 })
+  })
+
+  test('Attack Graph renders nodes + top-technique leaderboard', async ({ page }) => {
+    await page.goto('/#/graph')
+    await expect(page.getByText('Most-targeted techniques')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('button', { name: /Ingress Tool Transfer/ })).toBeVisible()
+  })
+
+  test('Watchlist persists an added CVE across reload', async ({ page }) => {
+    await page.goto('/#/watchlist')
+    const input = page.getByLabel('Add to watchlist')
+    await input.fill('CVE-2026-46817')
+    await page.getByRole('button', { name: 'Add', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Remove CVE-2026-46817' })).toBeVisible()
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Remove CVE-2026-46817' })).toBeVisible()
   })
 })

@@ -131,7 +131,7 @@ export default function Watchlist() {
         <>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <BookmarkPlus className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <BookmarkPlus className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text" value={addId} onChange={(e) => setAddId(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()}
                 placeholder="Add CVE (e.g. CVE-2024-1234) or actor ID (G####)…"
@@ -149,7 +149,7 @@ export default function Watchlist() {
           {addErr && <p className="text-xs text-red-400">{addErr}</p>}
 
           {items.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 p-10 text-center text-slate-500">
+            <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 p-10 text-center text-slate-400">
               <Bookmark className="mx-auto mb-2 h-8 w-8 opacity-40" />
               Your watchlist is empty. Add a CVE or threat-actor ID above. Stored only in this browser.
             </div>
@@ -163,7 +163,7 @@ export default function Watchlist() {
                       <span className="font-medium text-slate-100">{e.label}</span>
                       {e.isNew && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-300">New</span>}
                     </div>
-                    <p className="truncate text-xs text-slate-500">{e.extra}{e.added ? ` · added ${e.added}` : ''}</p>
+                    <p className="truncate text-xs text-slate-400">{e.extra}{e.added ? ` · added ${e.added}` : ''}</p>
                   </div>
                   {!e.live && <span className="text-[10px] text-slate-600">inactive</span>}
                   <button onClick={() => remove(e.id)} aria-label={`Remove ${e.id}`} className="rounded-lg border border-slate-700 p-1.5 text-slate-400 hover:bg-slate-800 hover:text-red-300">
@@ -176,7 +176,7 @@ export default function Watchlist() {
 
           <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
             <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200"><Bell className="h-4 w-4 text-sky-400" /> Optional outbound alert</h2>
-            <p className="mb-3 text-xs text-slate-500">Paste a Slack/Discord/Teams webhook URL. We never store it on a server — it lives in your browser and is only used when you click send.</p>
+            <p className="mb-3 text-xs text-slate-400">Paste a Slack/Discord/Teams webhook URL. We never store it on a server — it lives in your browser and is only used when you click send.</p>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <input
                 type="url" value={webhook} onChange={(e) => { setWebhook(e.target.value); saveLS('threatscope_webhook', e.target.value) }}

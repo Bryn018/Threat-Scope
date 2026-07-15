@@ -156,7 +156,7 @@ export default function AttackGraph() {
       {!isLoading && !error && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text" value={query} onChange={(e) => setQuery(e.target.value)}
               placeholder="Highlight node by name (group or technique)…"
@@ -174,7 +174,7 @@ export default function AttackGraph() {
 
       {!isLoading && !error && topTech.length > 0 && (
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <div className="col-span-full mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <div className="col-span-full mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
             <Link2 className="h-3.5 w-3.5" /> Most-targeted techniques (by actor count)
           </div>
           {topTech.map(t => (
@@ -212,7 +212,7 @@ export default function AttackGraph() {
               )
             })}
           </svg>
-          <div className="flex items-center gap-4 border-t border-slate-800 px-4 py-2 text-xs text-slate-500">
+          <div className="flex items-center gap-4 border-t border-slate-800 px-4 py-2 text-xs text-slate-400">
             <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-red-400" /> Threat actor ({actors.length})</span>
             <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-indigo-400" /> ATT&CK technique ({techs.filter(t => edges.some(e => e.t === t.id)).length})</span>
             <span className="ml-auto">Node size = relationship count</span>

@@ -12,6 +12,9 @@ const PAGES = [
   ['/iocs', 'IOC Lookup'],
   ['/exploits', 'Exploit Tracker'],
   ['/exposure', 'Technology Exposure'],
+  ['/actors', 'Threat Actors'],
+  ['/graph', 'Attack Graph'],
+  ['/watchlist', 'Watchlist'],
   ['/resources', 'Resources'],
 ]
 

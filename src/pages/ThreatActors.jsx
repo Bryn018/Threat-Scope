@@ -25,10 +25,10 @@ function ActorCard({ actor, onSelect, active }) {
     >
       <div className="flex items-start justify-between gap-2">
         <h3 className="font-semibold text-slate-100 group-hover:text-white">{actor.name}</h3>
-        <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-500 group-hover:text-sky-400" />
+        <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400 group-hover:text-sky-400" />
       </div>
       {actor.aliases?.length > 1 && (
-        <p className="text-xs text-slate-500 line-clamp-1">{actor.aliases.slice(1).join(', ')}</p>
+        <p className="text-xs text-slate-400 line-clamp-1">{actor.aliases.slice(1).join(', ')}</p>
       )}
       <div className="mt-1 flex flex-wrap gap-1.5">
         <span className="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 px-2 py-0.5 text-xs text-indigo-300">
@@ -118,7 +118,7 @@ export default function ThreatActors() {
       {!isLoading && !error && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={query}
@@ -150,7 +150,7 @@ export default function ThreatActors() {
                 <ShieldHalf className="h-5 w-5 text-sky-400" /> {selected.name}
               </h2>
               {selected.aliases?.length > 1 && (
-                <p className="text-xs text-slate-500">{selected.aliases.slice(1).join(', ')}</p>
+                <p className="text-xs text-slate-400">{selected.aliases.slice(1).join(', ')}</p>
               )}
             </div>
             <button onClick={() => setSelected(null)} aria-label="Close profile" className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800">
@@ -186,7 +186,7 @@ export default function ThreatActors() {
       )}
 
       {lastUpdated && (
-        <p className="text-xs text-slate-500">Auto-synced from MITRE ATT&CK · {lastUpdated.toLocaleTimeString()}</p>
+        <p className="text-xs text-slate-400">Auto-synced from MITRE ATT&CK · {lastUpdated.toLocaleTimeString()}</p>
       )}
     </div>
   )
@@ -196,7 +196,7 @@ function Section({ icon: Icon, title, tone, items, empty, href }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-3">
       <h3 className={`mb-2 flex items-center gap-1.5 text-sm font-semibold ${tone}`}>
-        <Icon className="h-4 w-4" /> {title} <span className="text-slate-500">({items.length})</span>
+        <Icon className="h-4 w-4" /> {title} <span className="text-slate-400">({items.length})</span>
       </h3>
       {items.length === 0 ? (
         <p className="text-xs text-slate-600">{empty}</p>
