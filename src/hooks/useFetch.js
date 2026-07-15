@@ -16,10 +16,19 @@ export function useFetch(url, options = {}) {
   const transformRef = useRef(transform)
   transformRef.current = transform
 
-  const [data, setData] = useState(() => cachedValue(url, ttl) ?? initialData)
-  const [isLoading, setIsLoading] = useState(() => !url || !cachedValue(url, ttl))
+  const [data, setData] = useState(() => {
+    const hit = url ? CACHE.get(url) : undefined
+    return hit && Date.now() - hit.timestamp < ttl ? hit.data : initialData
+  })
+  const [isLoading, setIsLoading] = useState(() => {
+    const hit = url ? CACHE.get(url) : undefined
+    return !url || !hit || Date.now() - hit.timestamp >= ttl
+  })
   const [error, setError] = useState(null)
-  const [lastUpdated, setLastUpdated] = useState(() => cachedAt(url))
+  const [lastUpdated, setLastUpdated] = useState(() => {
+    const hit = url ? CACHE.get(url) : undefined
+    return hit ? new Date(hit.timestamp) : null
+  })
 
   const abortRef = useRef(null)
   const urlRef = useRef(url)
@@ -30,10 +39,11 @@ export function useFetch(url, options = {}) {
       const fetchUrl = overrideUrl || urlRef.current
       if (!fetchUrl) return
 
-      const cached = cachedValue(fetchUrl, ttl)
+      const hit = CACHE.get(fetchUrl)
+      const cached = hit && Date.now() - hit.timestamp < ttl ? hit.data : undefined
       if (cached !== undefined) {
         setData(cached)
-        setLastUpdated(cachedAt(fetchUrl))
+        setLastUpdated(hit ? new Date(hit.timestamp) : null)
         setIsLoading(false)
         setError(null)
         return
@@ -87,19 +97,6 @@ export function useFetch(url, options = {}) {
   }, [execute])
 
   return { data, isLoading, error, lastUpdated, refresh }
-}
-
-function cachedValue(url, ttl) {
-  if (!url) return undefined
-  const hit = CACHE.get(url)
-  if (hit && Date.now() - hit.timestamp < ttl) return hit.data
-  return undefined
-}
-
-function cachedAt(url) {
-  if (!url) return null
-  const hit = CACHE.get(url)
-  return hit ? new Date(hit.timestamp) : null
 }
 
 export function clearCache() {
