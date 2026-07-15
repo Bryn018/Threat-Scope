@@ -96,6 +96,7 @@ export default function CveExplorer() {
         <select
           value={severityFilter}
           onChange={(e) => { setSeverityFilter(e.target.value); setPage(0) }}
+          aria-label="Filter CVEs by severity"
           className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2.5 text-sm text-slate-200 focus:border-sky-500 focus:outline-none"
         >
           <option value="">All Severities</option>
@@ -106,7 +107,7 @@ export default function CveExplorer() {
         </select>
         <button
           type="submit"
-          className="rounded-xl bg-sky-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-sky-500"
+          className="rounded-xl bg-sky-700 px-6 py-2.5 text-sm font-medium text-white hover:bg-sky-500"
         >
           Search
         </button>

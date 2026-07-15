@@ -1,5 +1,8 @@
-import { AlertTriangle, ShieldAlert } from 'lucide-react'
+import { useState } from 'react'
+import { AlertTriangle, ShieldAlert, ChevronLeft, ChevronRight } from 'lucide-react'
 import { getThreatLevel, epssBand } from '../utils/threatUtils'
+
+const PAGE_SIZE = 50
 
 const levelStyles = {
   critical: 'border-l-red-500',
@@ -37,9 +40,21 @@ function EpssCell({ epss }) {
 }
 
 export default function ThreatTable({ vulnerabilities, onSelect }) {
+  const [page, setPage] = useState(0)
+  const total = vulnerabilities.length
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const safePage = Math.min(page, pageCount - 1)
+  const start = safePage * PAGE_SIZE
+  const rows = vulnerabilities.slice(start, start + PAGE_SIZE)
+
   return (
     <section className="rounded-xl border border-slate-700 bg-slate-900/80 p-4">
-      <h2 className="text-sm font-semibold text-slate-100">Live Threat Feed</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-slate-100">Live Threat Feed</h2>
+        <span className="text-xs text-slate-400" aria-live="polite">
+          {total === 0 ? 'No results' : `${start + 1}–${Math.min(start + PAGE_SIZE, total)} of ${total}`}
+        </span>
+      </div>
       <div className="mt-3 overflow-x-auto">
         <table className="w-full min-w-[880px] border-collapse text-left text-sm text-slate-200">
           <thead className="text-xs uppercase tracking-wider text-slate-400">
@@ -53,7 +68,7 @@ export default function ThreatTable({ vulnerabilities, onSelect }) {
             </tr>
           </thead>
           <tbody>
-            {vulnerabilities.map((vulnerability) => {
+            {rows.map((vulnerability) => {
               const level = getThreatLevel(vulnerability)
               return (
                 <tr
@@ -75,6 +90,27 @@ export default function ThreatTable({ vulnerabilities, onSelect }) {
           </tbody>
         </table>
       </div>
+      {pageCount > 1 && (
+        <div className="mt-4 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={safePage === 0}
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900/40 px-3 py-1.5 text-xs font-medium text-slate-300 hover:border-white/40 disabled:opacity-40"
+          >
+            <ChevronLeft className="h-4 w-4" /> Prev
+          </button>
+          <span className="text-xs text-slate-400">Page {safePage + 1} of {pageCount}</span>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+            disabled={safePage >= pageCount - 1}
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900/40 px-3 py-1.5 text-xs font-medium text-slate-300 hover:border-white/40 disabled:opacity-40"
+          >
+            Next <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
     </section>
   )
 }

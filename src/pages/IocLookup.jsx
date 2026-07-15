@@ -142,7 +142,7 @@ export default function IocLookup() {
           <button
             type="submit"
             disabled={!inputValue.trim() || isLoading}
-            className="rounded-xl bg-sky-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40"
+            className="rounded-xl bg-sky-700 px-6 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-40"
           >
             {isLoading ? 'Looking up...' : 'Lookup'}
           </button>

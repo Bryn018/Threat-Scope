@@ -52,7 +52,9 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Runs against the live, deployed site so it validates what users actually see.
+    # Runs against a LOCAL preview of the production build (Playwright webServer),
+    # so it validates the real app deterministically without depending on the
+    # Cloudflare Pages deploy.
     steps:
       - uses: actions/checkout@v4
 
@@ -64,6 +66,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build
+        run: npm run build
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium

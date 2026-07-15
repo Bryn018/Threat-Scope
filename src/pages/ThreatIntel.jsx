@@ -155,6 +155,7 @@ export default function ThreatIntel() {
                       href={item.link}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={`Open advisory: ${item.title || 'CISA advisory'}`}
                       className="shrink-0 rounded-lg border border-slate-700 p-2 text-slate-400 hover:border-sky-500/50 hover:text-sky-400"
                     >
                       <ExternalLink className="h-4 w-4" />
