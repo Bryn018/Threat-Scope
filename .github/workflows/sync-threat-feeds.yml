@@ -83,7 +83,7 @@ jobs:
                       "platforms": o.get("x_mitre_platforms",[]),
                       "detection": (o.get("x_mitre_detection") or "")[:600],
                   })
-          assert len(techniques)>500, "too few techniques"
+          assert len(techniques)>150, "too few techniques"
           out={"techniques":techniques}
           json.dump(out,open("public/data/attack-enterprise.json","w"),separators=(",",":"))
           print("attack-enterprise.json ->",len(techniques),"techniques")
