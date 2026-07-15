@@ -12,9 +12,14 @@ export function useFetch(url, options = {}) {
     initialData = null,
   } = options
 
-  // Keep transform in a ref so it never churns the effect/callback identity.
+  // Keep latest transform/url in refs so the stable execute() callback can
+  // read fresh values without being recreated (avoids refetch loops).
   const transformRef = useRef(transform)
-  transformRef.current = transform
+  const urlRef = useRef(url)
+  useEffect(() => {
+    transformRef.current = transform
+    urlRef.current = url
+  })
 
   const [data, setData] = useState(() => {
     const hit = url ? CACHE.get(url) : undefined
@@ -31,8 +36,6 @@ export function useFetch(url, options = {}) {
   })
 
   const abortRef = useRef(null)
-  const urlRef = useRef(url)
-  urlRef.current = url
 
   const execute = useCallback(
     async (overrideUrl) => {
@@ -72,7 +75,7 @@ export function useFetch(url, options = {}) {
           const stale = CACHE.get(fetchUrl)
           if (stale) {
             setData(stale.data)
-            setLastUpdated(cachedAt(fetchUrl))
+            setLastUpdated(new Date(stale.timestamp))
           }
         }
       } finally {
