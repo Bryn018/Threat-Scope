@@ -1,0 +1,45 @@
+name: SAST (Semgrep)
+
+# Static application security testing. CodeQL requires GitHub Advanced Security,
+# which is a paid add-on on private repos, so we use Semgrep OSS instead — free,
+# keyless, and works on private repos. Findings are printed to the job log and
+# uploaded as a SARIF artifact; the job fails if any findings are detected.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '31 4 * * 1'   # weekly, Mondays 04:31 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Semgrep scan
+        # Keyless: rulesets are fetched from the public registry, no token needed.
+        run: |
+          semgrep scan \
+            --config p/javascript \
+            --config p/react \
+            --config p/security-audit \
+            --config p/secrets \
+            --sarif --output semgrep.sarif \
+            --error \
+            --exclude docs/ --exclude dist/ --exclude node_modules/
+
+      - name: Upload SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-sarif
+          path: semgrep.sarif
+          if-no-files-found: ignore
