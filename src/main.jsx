@@ -4,6 +4,7 @@ import { HashRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import Layout from './components/Layout'
 import ErrorBoundary from './components/ErrorBoundary'
+import { initErrorReporting } from './utils/errorReporting'
 
 // Route components are imported statically (not React.lazy). The app is small
 // (~190KB gzip) and a shared vendor chunk already holds React/charts, so eager
@@ -18,6 +19,8 @@ import ExploitTracker from './pages/ExploitTracker'
 import Exposure from './pages/Exposure'
 import Resources from './pages/Resources'
 import NotFound from './pages/NotFound'
+
+initErrorReporting()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

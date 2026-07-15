@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import { captureException } from '../utils/errorReporting'
 
 export default class ErrorBoundary extends Component {
   constructor(props) {
@@ -11,8 +12,8 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    // In production this is where you'd forward to an error tracker (Sentry, etc.)
     console.error('Threat Scope runtime error:', error, info)
+    captureException(error, { componentStack: info?.componentStack })
   }
 
   render() {

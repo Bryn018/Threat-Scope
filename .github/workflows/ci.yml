@@ -48,3 +48,27 @@ jobs:
             exit 1
           fi
           echo "docs/ is in sync with src."
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Runs against the live, deployed site so it validates what users actually see.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E (navigation, a11y, perf, Phase A features)
+        run: npm run test:e2e
+        env:
+          CI: 'true'
