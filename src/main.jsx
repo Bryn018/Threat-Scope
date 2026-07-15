@@ -19,6 +19,7 @@ import ExploitTracker from './pages/ExploitTracker'
 import Exposure from './pages/Exposure'
 import ThreatActors from './pages/ThreatActors'
 import AttackGraph from './pages/AttackGraph'
+import Watchlist from './pages/Watchlist'
 import Resources from './pages/Resources'
 import NotFound from './pages/NotFound'
 
@@ -39,6 +40,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="/exposure" element={<Exposure />} />
             <Route path="/actors" element={<ThreatActors />} />
             <Route path="/graph" element={<AttackGraph />} />
+            <Route path="/watchlist" element={<Watchlist />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="*" element={<NotFound />} />
           </Route>

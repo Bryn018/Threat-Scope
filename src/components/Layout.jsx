@@ -14,6 +14,7 @@ import {
   Radar,
   Users,
   Share2,
+  Bell,
 } from 'lucide-react'
 import CommandPalette from './CommandPalette'
 
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { to: '/exposure', icon: Radar, label: 'Tech Exposure' },
   { to: '/actors', icon: Users, label: 'Threat Actors' },
   { to: '/graph', icon: Share2, label: 'Attack Graph' },
+  { to: '/watchlist', icon: Bell, label: 'Watchlist' },
   { to: '/resources', icon: BookOpen, label: 'Resources' },
 ]
 
