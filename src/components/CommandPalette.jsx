@@ -21,6 +21,7 @@ export default function CommandPalette({ open, onOpenChange }) {
 
   useEffect(() => {
     function onKey(e) {
+      console.log('KEY handler', e.key, 'ctrl', e.ctrlKey, 'open', open)
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         onOpenChange(!open)
