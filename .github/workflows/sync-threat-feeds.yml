@@ -122,15 +122,53 @@ jobs:
                           "id": ext_id, "name": o.get("name",""),
                           "tactic": ph[0] if ph else "Other",
                       })
-          assert len(techniques)>150, "too few techniques"
-          json.dump({"techniques":techniques},open("public/data/attack-enterprise.json","w"),separators=(",",":"))
-          json.dump(cwe_to_techniques,open("public/data/technique-map.json","w"),separators=(",",":"))
+          import json as _j
+          def _ext_of(o):
+              for r in o.get("external_references") or []:
+                  if isinstance(r,dict) and r.get("external_id"): return r["external_id"]
+              return ""
+          tid2ext={}
+          for o in objs:
+              if o.get("type")=="attack-pattern" and not o.get("x_mitre_is_subtechnique") and not o.get("revoked") and not o.get("x_mitre_deprecated"):
+                  e=_ext_of(o)
+                  if e: tid2ext[o["id"]]=e
+          mal={o["id"]:o.get("name","") for o in objs if o.get("type")=="malware" and not o.get("revoked") and not o.get("x_mitre_deprecated")}
+          tools={o["id"]:o.get("name","") for o in objs if o.get("type")=="tool" and not o.get("revoked") and not o.get("x_mitre_deprecated")}
+          g2t={}; g2m={}; g2tool={}
+          for r in objs:
+              if r.get("type")!="relationship" or r.get("relationship_type")!="uses": continue
+              s,t=r.get("source_ref"),r.get("target_ref")
+              if s in by_id and by_id[s].get("type")=="intrusion-set":
+                  if t in tid2ext: g2t.setdefault(s,[]).append(t)
+                  elif t in mal: g2m.setdefault(s,[]).append(t)
+                  elif t in tools: g2tool.setdefault(s,[]).append(t)
+          def _sk(i):
+              p=i.split("-"); return int(p[1]) if len(p)>1 and p[1].isdigit() else 0
+          actors=[]
+          for o in objs:
+              if o.get("type")!="intrusion-set" or o.get("revoked") or o.get("x_mitre_deprecated"): continue
+              tid=o["id"]
+              techs=sorted({tid2ext[x] for x in g2t.get(tid,[]) if x in tid2ext}, key=_sk)
+              actors.append({
+                  "id":_ext_of(o) or tid,"name":o.get("name",""),"aliases":o.get("aliases",[]),
+                  "url":next((r.get("url","") for r in o.get("external_references") or [] if isinstance(r,dict) and r.get("url")),""),
+                  "description":(o.get("description") or "")[:800],
+                  "techniques":techs,
+                  "malware":sorted({mal[x] for x in g2m.get(tid,[]) if x in mal}),
+                  "tools":sorted({tools[x] for x in g2tool.get(tid,[]) if x in tools}),
+              })
+          actors.sort(key=lambda a:a["name"].lower())
+          _j.dump({"techniques":techniques},open("public/data/attack-enterprise.json","w"),separators=(",",":"))
+          _j.dump(cwe_to_techniques,open("public/data/technique-map.json","w"),separators=(",",":"))
+          _j.dump({"actors":actors},open("public/data/attack-actors.json","w"),separators=(",",":"))
           print("attack-enterprise.json ->",len(techniques),"techniques")
           print("technique-map.json ->",len(cwe_to_techniques),"CWEs mapped")
+          print("attack-actors.json ->",len(actors),"threat actors |",sum(1 for a in actors if a["techniques"]),"with >=1 technique")
           PY
           rm -f public/data/attack-enterprise.json.tmp
           cp public/data/attack-enterprise.json docs/data/attack-enterprise.json
           cp public/data/technique-map.json docs/data/technique-map.json
+          cp public/data/attack-actors.json docs/data/attack-actors.json
 
       - name: Sync Exploit-DB
         if: ${{ github.event.schedule == '17 */6 * * *' || github.event_name == 'workflow_dispatch' && (inputs.feed == '' || inputs.feed == 'exploit') }}

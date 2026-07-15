@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   Radar,
+  Users,
 } from 'lucide-react'
 import CommandPalette from './CommandPalette'
 
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { to: '/iocs', icon: Search, label: 'IOC Lookup' },
   { to: '/exploits', icon: Bomb, label: 'Exploit Tracker' },
   { to: '/exposure', icon: Radar, label: 'Tech Exposure' },
+  { to: '/actors', icon: Users, label: 'Threat Actors' },
   { to: '/resources', icon: BookOpen, label: 'Resources' },
 ]
 
