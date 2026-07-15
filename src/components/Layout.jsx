@@ -104,6 +104,13 @@ export default function Layout() {
             <Shield className="h-5 w-5 text-sky-400" />
             <span className="text-sm font-semibold text-white">Threat Scope</span>
           </div>
+          <button
+            onClick={() => setPaletteOpen(true)}
+            className="ml-auto rounded-md border border-slate-800 bg-slate-900/60 p-1.5 text-slate-400 hover:text-white"
+            aria-label="Quick nav"
+          >
+            <Search className="h-4 w-4" />
+          </button>
         </header>
 
         {/* Desktop command-palette trigger */}
