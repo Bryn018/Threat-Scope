@@ -108,7 +108,7 @@ export default function Layout() {
         {/* Desktop command-palette trigger */}
         <header className="hidden items-center justify-end gap-3 border-b border-white/10 bg-slate-950/60 px-4 py-3 backdrop-blur lg:flex">
           <button
-            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
+            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }))}
             className="inline-flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-400 hover:border-white/30 hover:text-slate-200"
           >
             <Search className="h-3.5 w-3.5" />
