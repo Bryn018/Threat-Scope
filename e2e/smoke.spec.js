@@ -129,4 +129,25 @@ test.describe('Navigation is responsive (no stuck views)', () => {
     await page.reload()
     await expect(page.getByRole('button', { name: /Switch to (light|dark) mode/ })).toBeVisible()
   })
+
+  test('sidebar collapses and expands on desktop, freeing space', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 })
+    await page.goto('/#/')
+    const aside = page.locator('aside')
+    const collapseBtn = page.getByRole('button', { name: 'Collapse sidebar' })
+    const expandBtn = page.getByRole('button', { name: 'Expand sidebar' }).first()
+    await expect(collapseBtn).toBeVisible()
+    // expanded width
+    const expanded = await aside.evaluate(el => el.getBoundingClientRect().width)
+    await collapseBtn.click()
+    // collapsed: narrower rail, expand control appears, label hidden
+    await expect(expandBtn).toBeVisible()
+    const collapsed = await aside.evaluate(el => el.getBoundingClientRect().width)
+    expect(collapsed).toBeLessThan(expanded - 100)
+    // preference persists across reload
+    await page.reload()
+    await expect(expandBtn).toBeVisible()
+    await expandBtn.click()
+    await expect(collapseBtn).toBeVisible()
+  })
 })
