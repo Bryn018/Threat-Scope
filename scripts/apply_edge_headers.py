@@ -28,13 +28,11 @@ def cf(token, method, path, body=None):
         print(f"Refusing unsafe API path: {path!r}", file=sys.stderr)
         sys.exit(1)
     data = json.dumps(body).encode() if body is not None else None
-    # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected
-    # Safe: API base is a constant; path is a validated relative route from trusted API responses.
     req = urllib.request.Request(f"{API}{path}", data=data, method=method)
     req.add_header("Authorization", f"Bearer {token}")
     req.add_header("Content-Type", "application/json")
     try:
-        with urllib.request.urlopen(req) as r:
+        with urllib.request.urlopen(req) as r:  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected.dynamic-urllib-use-detected (API base is constant; path validated above)
             return json.load(r)
     except urllib.error.HTTPError as e:
         payload = e.read().decode()
