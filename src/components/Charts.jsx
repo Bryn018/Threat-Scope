@@ -21,12 +21,12 @@ const palette = ['#38bdf8', '#f472b6', '#a78bfa', '#facc15', '#34d399', '#fb7185
 const ChartTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-900/90 px-4 py-3 text-xs text-slate-100 shadow">
-      <p className="mb-1 text-sm font-semibold text-white">{label}</p>
+    <div className="rounded-xl border border-border-strong bg-surface-2/90 px-4 py-3 text-xs text-fg shadow">
+      <p className="mb-1 text-sm font-semibold text-fg">{label}</p>
       {payload.map((item, idx) => (
         <p key={idx} className="flex items-center gap-2" style={{ color: item.color }}>
           <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
-          {item.name}: <span className="font-semibold text-white">{item.value}</span>
+          {item.name}: <span className="font-semibold text-fg">{item.value}</span>
         </p>
       ))}
     </div>
@@ -103,8 +103,8 @@ export default function Charts({
   return (
     <div className="space-y-4">
       <div className="grid gap-4 xl:grid-cols-3">
-        <div className="xl:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-          <h2 className="text-sm font-semibold text-slate-300">Top Vendors — click to filter table</h2>
+        <div className="xl:col-span-2 rounded-2xl border border-border bg-surface-2/60 p-4">
+          <h2 className="text-sm font-semibold text-muted">Top Vendors — click to filter table</h2>
           <div className="mt-3 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={vendorData}>
@@ -133,8 +133,8 @@ export default function Charts({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-          <h2 className="text-sm font-semibold text-slate-300">Severity Breakdown — click to filter table</h2>
+        <div className="rounded-2xl border border-border bg-surface-2/60 p-4">
+          <h2 className="text-sm font-semibold text-muted">Severity Breakdown — click to filter table</h2>
           <div className="mt-2 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -165,8 +165,8 @@ export default function Charts({
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-          <h2 className="text-sm font-semibold text-slate-300">Weakness Categories (CWE) — click to filter table</h2>
+        <div className="rounded-2xl border border-border bg-surface-2/60 p-4">
+          <h2 className="text-sm font-semibold text-muted">Weakness Categories (CWE) — click to filter table</h2>
           <div className="mt-3 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={cweData}>
@@ -195,8 +195,8 @@ export default function Charts({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-          <h2 className="text-sm font-semibold text-slate-300">KEVs Added per Month — CISA KEV catalog growth</h2>
+        <div className="rounded-2xl border border-border bg-surface-2/60 p-4">
+          <h2 className="text-sm font-semibold text-muted">KEVs Added per Month — CISA KEV catalog growth</h2>
           <div className="mt-3 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={timelineData}>
@@ -224,8 +224,8 @@ export default function Charts({
       </div>
 
       {tacticData.length > 0 && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-          <h2 className="text-sm font-semibold text-slate-300">ATT&CK Tactics (from CWE mapping)</h2>
+        <div className="rounded-2xl border border-border bg-surface-2/60 p-4">
+          <h2 className="text-sm font-semibold text-muted">ATT&CK Tactics (from CWE mapping)</h2>
           <div className="mt-3 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={tacticData}>

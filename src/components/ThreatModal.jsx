@@ -14,39 +14,39 @@ export default function ThreatModal({ vulnerability, onClose, techniqueMap = {} 
     .filter((t, i, arr) => arr.findIndex((x) => x.id === t.id) === i)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" role="dialog" aria-modal="true">
-      <div className="w-full max-w-2xl rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay/70 p-4" role="dialog" aria-modal="true">
+      <div className="w-full max-w-2xl rounded-xl border border-border-strong bg-surface-2 p-6 shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-wider text-slate-400">{vulnerability.cveID}</p>
-            <h3 className="mt-1 text-lg font-semibold text-white">{vulnerability.vulnerabilityName}</h3>
+            <p className="text-xs uppercase tracking-wider text-muted">{vulnerability.cveID}</p>
+            <h3 className="mt-1 text-lg font-semibold text-fg">{vulnerability.vulnerabilityName}</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-slate-700 p-1.5 text-slate-300 hover:border-slate-500 hover:text-white"
+            className="rounded-md border border-border-strong p-1.5 text-muted hover:border-border-strong hover:text-fg"
             aria-label="Close details"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
 
-        <dl className="mt-4 space-y-4 text-sm text-slate-200">
+        <dl className="mt-4 space-y-4 text-sm text-fg">
           <div>
-            <dt className="text-xs uppercase tracking-wider text-slate-400">Vendor / Product</dt>
+            <dt className="text-xs uppercase tracking-wider text-muted">Vendor / Product</dt>
             <dd className="mt-1">{vulnerability.vendorProject}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wider text-slate-400">Description</dt>
-            <dd className="mt-1 text-slate-300">{vulnerability.shortDescription}</dd>
+            <dt className="text-xs uppercase tracking-wider text-muted">Description</dt>
+            <dd className="mt-1 text-muted">{vulnerability.shortDescription}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wider text-slate-400">Required Action</dt>
-            <dd className="mt-1 text-slate-300">{vulnerability.requiredAction}</dd>
+            <dt className="text-xs uppercase tracking-wider text-muted">Required Action</dt>
+            <dd className="mt-1 text-muted">{vulnerability.requiredAction}</dd>
           </div>
           {techniques.length > 0 && (
             <div>
-              <dt className="text-xs uppercase tracking-wider text-slate-400">ATT&CK Techniques</dt>
+              <dt className="text-xs uppercase tracking-wider text-muted">ATT&CK Techniques</dt>
               <dd className="mt-1 flex flex-wrap gap-2">
                 {techniques.map((t) => (
                   <span
@@ -67,7 +67,7 @@ export default function ThreatModal({ vulnerability, onClose, techniqueMap = {} 
           href={remediationLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-6 inline-flex items-center gap-2 rounded-md border border-sky-500/70 bg-sky-500/10 px-3 py-2 text-sm font-medium text-sky-300 hover:bg-sky-500/20"
+          className="mt-6 inline-flex items-center gap-2 rounded-md border border-sky-500/70 bg-accent-soft px-3 py-2 text-sm font-medium text-accent hover:bg-sky-500/20"
         >
           Official Remediation / Patch Link
           <ExternalLink className="h-4 w-4" aria-hidden="true" />

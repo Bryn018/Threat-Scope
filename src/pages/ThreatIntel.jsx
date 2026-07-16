@@ -58,14 +58,14 @@ export default function ThreatIntel() {
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Threat Intelligence</h1>
-          <p className="mt-0.5 text-sm text-slate-400">
+          <h1 className="text-2xl font-bold text-fg">Threat Intelligence</h1>
+          <p className="mt-0.5 text-sm text-muted">
             CISA advisories and news — real-time from the official CISA feed
           </p>
         </div>
         <button
           onClick={currentRefresh}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500 hover:text-white"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border-strong bg-surface-2 px-3 py-1.5 text-xs text-muted hover:border-border-strong hover:text-fg"
         >
           <RefreshCw className="h-3.5 w-3.5" />
           Refresh
@@ -78,8 +78,8 @@ export default function ThreatIntel() {
           onClick={() => { setActiveTab('advisories'); setSearchTerm('') }}
           className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${
             activeTab === 'advisories'
-              ? 'border-amber-500/70 bg-amber-500/10 text-amber-300'
-              : 'border-slate-700 bg-slate-900/40 text-slate-400 hover:border-slate-500'
+              ? 'border-amber-500/70 bg-warning-soft text-warning-ink'
+              : 'border-border-strong bg-surface-2/40 text-muted hover:border-border-strong'
           }`}
         >
           <AlertTriangle className="h-4 w-4" />
@@ -89,8 +89,8 @@ export default function ThreatIntel() {
           onClick={() => { setActiveTab('news'); setSearchTerm('') }}
           className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition ${
             activeTab === 'news'
-              ? 'border-sky-500/70 bg-sky-500/10 text-sky-300'
-              : 'border-slate-700 bg-slate-900/40 text-slate-400 hover:border-slate-500'
+              ? 'border-sky-500/70 bg-accent-soft text-accent-ink'
+              : 'border-border-strong bg-surface-2/40 text-muted hover:border-border-strong'
           }`}
         >
           <Rss className="h-4 w-4" />
@@ -101,24 +101,24 @@ export default function ThreatIntel() {
       {/* Search */}
       <div className="mb-6">
         <div className="relative max-w-md">
-          <Rss className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Rss className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={`Search ${activeTab === 'advisories' ? 'advisories' : 'news'}...`}
-            className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none"
+            className="w-full rounded-xl border border-border bg-surface-2/60 px-9 py-2.5 text-sm text-fg placeholder:text-muted focus:border-accent focus:outline-none"
           />
         </div>
       </div>
 
       {/* Loading / Error */}
       {currentLoading && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm text-slate-300">
+        <div className="rounded-xl border border-border bg-surface-2/60 p-8 text-center text-sm text-muted">
           Loading CISA {activeTab === 'advisories' ? 'advisories' : 'news'}...
         </div>
       )}
       {currentError && (
-        <div className="rounded-xl border border-red-500/70 bg-red-500/10 p-6 text-sm text-red-200">
+        <div className="rounded-xl border border-red-500/70 bg-danger-soft p-6 text-sm text-danger">
           Error loading feed: {currentError}. The CISA feed may still be syncing — try refreshing shortly.
         </div>
       )}
@@ -127,7 +127,7 @@ export default function ThreatIntel() {
       {!currentLoading && !currentError && (
         <>
           {filteredItems.length === 0 ? (
-            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm text-slate-400">
+            <div className="rounded-xl border border-border bg-surface-2/60 p-8 text-center text-sm text-muted">
               {searchTerm ? 'No matching items found.' : 'No items available.'}
             </div>
           ) : (
@@ -135,16 +135,16 @@ export default function ThreatIntel() {
               {filteredItems.slice(0, 30).map((item, idx) => (
                 <article
                   key={item.guid || item.link || idx}
-                  className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-slate-700"
+                  className="rounded-xl border border-border bg-surface-2/60 p-4 transition hover:border-border-strong"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-white">{item.title}</h3>
-                      <p className="mt-1.5 line-clamp-3 text-xs text-slate-400">
+                      <h3 className="text-sm font-semibold text-fg">{item.title}</h3>
+                      <p className="mt-1.5 line-clamp-3 text-xs text-muted">
                         {(stripHtml(item.description || '')).slice(0, 300)}
                         {(stripHtml(item.description || '')).length > 300 ? '...' : ''}
                       </p>
-                      <div className="mt-2 flex items-center gap-3 text-xs text-slate-400">
+                      <div className="mt-2 flex items-center gap-3 text-xs text-muted">
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {formatDate(item.pubDate)}
@@ -156,7 +156,7 @@ export default function ThreatIntel() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`Open advisory: ${item.title || 'CISA advisory'}`}
-                      className="shrink-0 rounded-lg border border-slate-700 p-2 text-slate-400 hover:border-sky-500/50 hover:text-sky-400"
+                      className="shrink-0 rounded-lg border border-border-strong p-2 text-muted hover:border-sky-500/50 hover:text-accent"
                     >
                       <ExternalLink className="h-4 w-4" />
                     </a>
@@ -169,12 +169,12 @@ export default function ThreatIntel() {
       )}
 
       {/* Info banner */}
-      <div className="mt-8 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+      <div className="mt-8 rounded-xl border border-border bg-surface-2/40 p-4">
         <div className="flex items-start gap-3">
-          <Shield className="h-5 w-5 shrink-0 text-sky-400" />
+          <Shield className="h-5 w-5 shrink-0 text-accent" />
           <div>
-            <p className="text-sm font-medium text-slate-200">About CISA Feeds</p>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="text-sm font-medium text-fg">About CISA Feeds</p>
+            <p className="mt-1 text-xs text-muted">
               CISA Advisories provide timely guidance on active threats and vulnerabilities.
               CISA News highlights emerging security developments. Both are mirrored from the
               official CISA feed and refreshed automatically.

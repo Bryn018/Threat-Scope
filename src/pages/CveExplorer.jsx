@@ -14,17 +14,17 @@ function buildNvdUrl(params) {
 }
 
 function severityColor(score) {
-  if (score >= 9) return 'text-red-400'
-  if (score >= 7) return 'text-orange-400'
+  if (score >= 9) return 'text-danger'
+  if (score >= 7) return 'text-high'
   if (score >= 4) return 'text-yellow-400'
-  return 'text-green-400'
+  return 'text-ok'
 }
 
 function severityBg(score) {
-  if (score >= 9) return 'border-red-500/40 bg-red-500/10'
-  if (score >= 7) return 'border-orange-500/40 bg-orange-500/10'
+  if (score >= 9) return 'border-red-500/40 bg-danger-soft'
+  if (score >= 7) return 'border-high-soft bg-high-soft'
   if (score >= 4) return 'border-yellow-500/40 bg-yellow-500/10'
-  return 'border-green-500/40 bg-green-500/10'
+  return 'border-green-500/40 bg-ok-soft'
 }
 
 function getCveScore(cve) {
@@ -76,8 +76,8 @@ export default function CveExplorer() {
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">CVE Explorer</h1>
-        <p className="mt-0.5 text-sm text-slate-400">
+        <h1 className="text-2xl font-bold text-fg">CVE Explorer</h1>
+        <p className="mt-0.5 text-sm text-muted">
           Search the NIST National Vulnerability Database — real-time CVE data
         </p>
       </div>
@@ -85,19 +85,19 @@ export default function CveExplorer() {
       {/* Search */}
       <form onSubmit={handleSearch} className="mb-6 flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Search CVEs by keyword, product, or CVE-ID (e.g., 'Apache', 'CVE-2024-1234')"
-            className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none"
+            className="w-full rounded-xl border border-border bg-surface-2/60 px-9 py-2.5 text-sm text-fg placeholder:text-muted focus:border-accent focus:outline-none"
           />
         </div>
         <select
           value={severityFilter}
           onChange={(e) => { setSeverityFilter(e.target.value); setPage(0) }}
           aria-label="Filter CVEs by severity"
-          className="rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2.5 text-sm text-slate-200 focus:border-sky-500 focus:outline-none"
+          className="rounded-xl border border-border bg-surface-2/60 px-3 py-2.5 text-sm text-fg focus:border-accent focus:outline-none"
         >
           <option value="">All Severities</option>
           <option value="CRITICAL">Critical</option>
@@ -107,7 +107,7 @@ export default function CveExplorer() {
         </select>
         <button
           type="submit"
-          className="rounded-xl bg-sky-700 px-6 py-2.5 text-sm font-medium text-white hover:bg-sky-500"
+          className="rounded-xl bg-accent px-6 py-2.5 text-sm font-medium text-accent-fg hover:opacity-90"
         >
           Search
         </button>
@@ -116,21 +116,21 @@ export default function CveExplorer() {
       {/* Results info */}
       {searchTerm && (
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-muted">
             {data?.totalResults?.toLocaleString() || 0} results for "{searchTerm}"
-            {lastUpdated && <span className="ml-2 text-slate-400">• Updated {lastUpdated.toLocaleTimeString()}</span>}
+            {lastUpdated && <span className="ml-2 text-muted">• Updated {lastUpdated.toLocaleTimeString()}</span>}
           </p>
         </div>
       )}
 
       {/* Loading / Error */}
       {isLoading && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm text-slate-300">
+        <div className="rounded-xl border border-border bg-surface-2/60 p-8 text-center text-sm text-muted">
           Searching NVD database...
         </div>
       )}
       {error && (
-        <div className="rounded-xl border border-red-500/70 bg-red-500/10 p-6 text-sm text-red-200">
+        <div className="rounded-xl border border-red-500/70 bg-danger-soft p-6 text-sm text-danger">
           Error: {error}. The NVD API may be rate-limited. Try again in a moment.
         </div>
       )}
@@ -148,26 +148,26 @@ export default function CveExplorer() {
             return (
               <div
                 key={cve.id}
-                className={`cursor-pointer rounded-xl border p-4 transition hover:border-white/20 ${severityBg(score)}`}
+                className={`cursor-pointer rounded-xl border p-4 transition hover:border-border/20 ${severityBg(score)}`}
                 onClick={() => setSelectedCve(cve)}
               >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
-                      <span className="font-mono text-sm font-bold text-white">{cve.id}</span>
+                      <span className="font-mono text-sm font-bold text-fg">{cve.id}</span>
                       <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${severityColor(score)}`}>
                         {score > 0 ? `${score} — ${sev}` : 'Unscored'}
                       </span>
                     </div>
-                    <p className="mt-1.5 text-sm text-slate-300 line-clamp-2">{desc}</p>
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                    <p className="mt-1.5 text-sm text-muted line-clamp-2">{desc}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted">
                       <span>Published: {published}</span>
                       {cve?.references?.length > 0 && (
                         <span>{cve.references.length} reference{cve.references.length > 1 ? 's' : ''}</span>
                       )}
                     </div>
                   </div>
-                  <ExternalLink className="h-4 w-4 shrink-0 text-slate-400" />
+                  <ExternalLink className="h-4 w-4 shrink-0 text-muted" />
                 </div>
               </div>
             )
@@ -179,17 +179,17 @@ export default function CveExplorer() {
               <button
                 onClick={() => setPage(Math.max(0, page - 1))}
                 disabled={page === 0}
-                className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500 disabled:opacity-40"
+                className="rounded-lg border border-border-strong bg-surface-2 px-3 py-1.5 text-xs text-muted hover:border-border-strong disabled:opacity-40"
               >
                 Previous
               </button>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-muted">
                 Page {page + 1} of {totalPages}
               </span>
               <button
                 onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
                 disabled={page >= totalPages - 1}
-                className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500 disabled:opacity-40"
+                className="rounded-lg border border-border-strong bg-surface-2 px-3 py-1.5 text-xs text-muted hover:border-border-strong disabled:opacity-40"
               >
                 Next
               </button>
@@ -200,41 +200,41 @@ export default function CveExplorer() {
 
       {/* Empty state */}
       {!isLoading && !error && searchTerm && data?.vulnerabilities?.length === 0 && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm text-slate-400">
+        <div className="rounded-xl border border-border bg-surface-2/60 p-8 text-center text-sm text-muted">
           No CVEs found for "{searchTerm}". Try a different search term.
         </div>
       )}
 
       {/* Initial state */}
       {!searchTerm && !isLoading && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-12 text-center">
-          <Info className="mx-auto h-10 w-10 text-slate-400" />
-          <p className="mt-3 text-sm text-slate-400">Search the NVD database to explore CVEs</p>
-          <p className="mt-1 text-xs text-slate-400">Try "Apache", "Windows", "CVE-2024", or any product name</p>
+        <div className="rounded-xl border border-border bg-surface-2/60 p-12 text-center">
+          <Info className="mx-auto h-10 w-10 text-muted" />
+          <p className="mt-3 text-sm text-muted">Search the NVD database to explore CVEs</p>
+          <p className="mt-1 text-xs text-muted">Try "Apache", "Windows", "CVE-2024", or any product name</p>
         </div>
       )}
 
       {/* CVE Detail Modal */}
       {selectedCve && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setSelectedCve(null)}>
-          <div className="w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay/70 p-4" onClick={() => setSelectedCve(null)}>
+          <div className="w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl border border-border-strong bg-surface-2 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="font-mono text-lg font-bold text-white">{selectedCve.id}</p>
-                <p className="mt-1 text-sm text-slate-400">Published: {selectedCve.published?.slice(0, 10) || '—'}</p>
+                <p className="font-mono text-lg font-bold text-fg">{selectedCve.id}</p>
+                <p className="mt-1 text-sm text-muted">Published: {selectedCve.published?.slice(0, 10) || '—'}</p>
               </div>
-              <button onClick={() => setSelectedCve(null)} className="rounded-md border border-slate-700 p-1.5 text-slate-300 hover:text-white">✕</button>
+              <button onClick={() => setSelectedCve(null)} className="rounded-md border border-border-strong p-1.5 text-muted hover:text-fg">✕</button>
             </div>
 
             <div className="mt-4 space-y-4">
               <div>
-                <h3 className="text-xs uppercase tracking-wider text-slate-400">Description</h3>
-                <p className="mt-1 text-sm text-slate-200">{selectedCve?.descriptions?.find((d) => d.lang === 'en')?.value || 'No description'}</p>
+                <h3 className="text-xs uppercase tracking-wider text-muted">Description</h3>
+                <p className="mt-1 text-sm text-fg">{selectedCve?.descriptions?.find((d) => d.lang === 'en')?.value || 'No description'}</p>
               </div>
 
               {getCveScore(selectedCve) > 0 && (
                 <div>
-                  <h3 className="text-xs uppercase tracking-wider text-slate-400">CVSS Score</h3>
+                  <h3 className="text-xs uppercase tracking-wider text-muted">CVSS Score</h3>
                   <p className={`mt-1 text-lg font-bold ${severityColor(getCveScore(selectedCve))}`}>
                     {getCveScore(selectedCve)} — {getCveSeverity(selectedCve)}
                   </p>
@@ -243,7 +243,7 @@ export default function CveExplorer() {
 
               {selectedCve?.references?.length > 0 && (
                 <div>
-                  <h3 className="text-xs uppercase tracking-wider text-slate-400">References</h3>
+                  <h3 className="text-xs uppercase tracking-wider text-muted">References</h3>
                   <ul className="mt-2 space-y-1">
                     {selectedCve.references.slice(0, 10).map((ref, i) => (
                       <li key={i}>
@@ -251,7 +251,7 @@ export default function CveExplorer() {
                           href={ref.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm text-sky-400 hover:text-sky-300 hover:underline"
+                          className="text-sm text-accent hover:text-accent hover:underline"
                         >
                           {ref.url}
                         </a>
@@ -265,7 +265,7 @@ export default function CveExplorer() {
                 href={`https://nvd.nist.gov/vuln/detail/${selectedCve.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-sky-500/70 bg-sky-500/10 px-4 py-2 text-sm font-medium text-sky-300 hover:bg-sky-500/20"
+                className="inline-flex items-center gap-2 rounded-lg border border-sky-500/70 bg-accent-soft px-4 py-2 text-sm font-medium text-accent hover:bg-sky-500/20"
               >
                 View on NVD <ExternalLink className="h-4 w-4" />
               </a>

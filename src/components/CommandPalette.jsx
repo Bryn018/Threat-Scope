@@ -60,15 +60,15 @@ export default function CommandPalette({ open, onOpenChange }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 px-4 pt-[12vh]"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-overlay/60 px-4 pt-[12vh]"
       onClick={() => onOpenChange(false)}
     >
       <div
-        className="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl"
+        className="w-full max-w-lg overflow-hidden rounded-2xl border border-border-strong bg-surface-2 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2 border-b border-slate-800 px-4 py-3">
-          <Search className="h-4 w-4 text-slate-400" />
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <Search className="h-4 w-4 text-muted" />
           <input
             ref={inputRef}
             value={query}
@@ -79,13 +79,13 @@ export default function CommandPalette({ open, onOpenChange }) {
               else if (e.key === 'Enter') { e.preventDefault(); choose(results[active]) }
             }}
             placeholder="Jump to a page…"
-            className="w-full bg-transparent text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none"
+            className="w-full bg-transparent text-sm text-fg placeholder:text-muted focus:outline-none"
           />
-          <kbd className="rounded border border-slate-700 px-1.5 py-0.5 text-[10px] text-slate-400">ESC</kbd>
+          <kbd className="rounded border border-border-strong px-1.5 py-0.5 text-[10px] text-muted">ESC</kbd>
         </div>
         <ul className="max-h-72 overflow-y-auto py-2">
           {results.length === 0 && (
-            <li className="px-4 py-3 text-sm text-slate-400">No matches</li>
+            <li className="px-4 py-3 text-sm text-muted">No matches</li>
           )}
           {results.map((item, i) => (
             <li key={item.to}>
@@ -94,8 +94,8 @@ export default function CommandPalette({ open, onOpenChange }) {
                 onClick={() => choose(item)}
                 className={`flex w-full items-center justify-between px-4 py-2.5 text-left ${i === active ? 'bg-sky-500/15' : ''}`}
               >
-                <span className={`text-sm ${i === active ? 'text-sky-200' : 'text-slate-200'}`}>{item.label}</span>
-                <span className="flex items-center gap-2 text-xs text-slate-400">
+                <span className={`text-sm ${i === active ? 'text-accent' : 'text-fg'}`}>{item.label}</span>
+                <span className="flex items-center gap-2 text-xs text-muted">
                   {item.hint}
                   {i === active && <CornerDownLeft className="h-3.5 w-3.5" />}
                 </span>

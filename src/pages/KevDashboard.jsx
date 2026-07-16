@@ -5,6 +5,7 @@ import Filters from '../components/Filters'
 import Charts from '../components/Charts'
 import ThreatTable from '../components/ThreatTable'
 import ThreatModal from '../components/ThreatModal'
+import Glossary from '../components/Glossary'
 import { exportCsv, exportStix, downloadJson } from '../utils/exportUtils'
 import {
   normalizeVulnerabilities,
@@ -199,12 +200,12 @@ export default function KevDashboard() {
       {/* Header */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">KEV Dashboard</h1>
-          <p className="mt-0.5 text-sm text-slate-400">CISA Known Exploited Vulnerabilities — real-time feed</p>
+          <h1 className="text-2xl font-bold text-fg">KEV Dashboard</h1>
+          <p className="mt-0.5 text-sm text-muted">CISA Known Exploited Vulnerabilities — real-time feed</p>
         </div>
         <div className="flex items-center gap-3">
           {lastUpdated && (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-muted">
               Updated {lastUpdated.toLocaleTimeString()} {dataSource && `• ${dataSource}`}
             </span>
           )}
@@ -218,11 +219,12 @@ export default function KevDashboard() {
                 setIsLoading(false)
               }
             }}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500 hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border-strong bg-surface-2 px-3 py-1.5 text-xs text-muted hover:border-accent-border hover:text-fg"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             Refresh
           </button>
+          <Glossary />
           <button
             onClick={() => {
               const cols = [
@@ -235,7 +237,7 @@ export default function KevDashboard() {
               ]
               exportCsv(filteredVulnerabilities, cols, `threatscope-kev-${Date.now()}.csv`)
             }}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500 hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border-strong bg-surface-2 px-3 py-1.5 text-xs text-muted hover:border-accent-border hover:text-fg"
           >
             <Download className="h-3.5 w-3.5" />
             CSV
@@ -245,15 +247,15 @@ export default function KevDashboard() {
               const bundle = exportStix(filteredVulnerabilities, epssMap)
               downloadJson(bundle, `threatscope-kev-${Date.now()}.stix.json`)
             }}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500 hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border-strong bg-surface-2 px-3 py-1.5 text-xs text-muted hover:border-accent-border hover:text-fg"
           >
             <Download className="h-3.5 w-3.5" />
             STIX
           </button>
-          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-300">
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-ok-soft px-3 py-1.5 text-xs font-medium text-ok">
             <span className="relative inline-flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-ok" />
             </span>
             Auto-synced
           </span>
@@ -261,13 +263,13 @@ export default function KevDashboard() {
       </div>
 
       {isLoading && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 text-sm text-slate-300">
+        <div className="rounded-xl border border-border bg-surface-2/60 p-6 text-sm text-muted">
           Loading threat feed...
         </div>
       )}
 
       {!isLoading && error && (
-        <div className="rounded-xl border border-red-500/70 bg-red-500/10 p-6 text-sm text-red-200">{error}</div>
+        <div className="rounded-xl border border-red-500/70 bg-danger-soft p-6 text-sm text-danger">{error}</div>
       )}
 
       {!isLoading && !error && (

@@ -4,6 +4,7 @@ import { HashRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import Layout from './components/Layout'
 import ErrorBoundary from './components/ErrorBoundary'
+import { ThemeProvider } from './context/ThemeContext'
 import { initErrorReporting } from './utils/errorReporting'
 
 // Route components are imported statically (not React.lazy). The app is small
@@ -29,7 +30,8 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
       <HashRouter>
-        <Routes>
+        <ThemeProvider>
+          <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<KevDashboard />} />
             <Route path="/cves" element={<CveExplorer />} />
@@ -45,6 +47,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
+        </ThemeProvider>
       </HashRouter>
     </ErrorBoundary>
   </StrictMode>,

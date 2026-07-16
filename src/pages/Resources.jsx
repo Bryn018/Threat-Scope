@@ -4,7 +4,7 @@ const RESOURCE_CATEGORIES = [
   {
     title: 'Vulnerability Databases',
     icon: Shield,
-    color: 'text-red-400',
+    color: 'text-danger',
     items: [
       { name: 'NVD — National Vulnerability Database', url: 'https://nvd.nist.gov', desc: 'Official US government vulnerability database' },
       { name: 'CISA KEV Catalog', url: 'https://www.cisa.gov/known-exploited-vulnerabilities-catalog', desc: 'Known exploited vulnerabilities' },
@@ -15,7 +15,7 @@ const RESOURCE_CATEGORIES = [
   {
     title: 'Threat Intelligence Platforms',
     icon: Globe,
-    color: 'text-sky-400',
+    color: 'text-accent',
     items: [
       { name: 'VirusTotal', url: 'https://www.virustotal.com', desc: 'File and URL analysis' },
       { name: 'Shodan', url: 'https://www.shodan.io', desc: 'Internet-connected device search' },
@@ -28,7 +28,7 @@ const RESOURCE_CATEGORIES = [
   {
     title: 'Exploit & Malware Research',
     icon: Wrench,
-    color: 'text-orange-400',
+    color: 'text-high',
     items: [
       { name: 'Exploit-DB', url: 'https://www.exploit-db.com', desc: 'Public exploit archive' },
       { name: 'MalwareBazaar', url: 'https://bazaar.abuse.ch', desc: 'Malware sample sharing' },
@@ -51,7 +51,7 @@ const RESOURCE_CATEGORIES = [
   {
     title: 'Security Tools',
     icon: Wrench,
-    color: 'text-emerald-400',
+    color: 'text-ok',
     items: [
       { name: 'Nmap', url: 'https://nmap.org', desc: 'Network scanner' },
       { name: 'Burp Suite', url: 'https://portswigger.net/burp', desc: 'Web app security testing' },
@@ -64,7 +64,7 @@ const RESOURCE_CATEGORIES = [
   {
     title: 'Security News & Communities',
     icon: BookOpen,
-    color: 'text-amber-400',
+    color: 'text-warning',
     items: [
       { name: 'Krebs on Security', url: 'https://krebsonsecurity.com', desc: 'In-depth security journalism' },
       { name: 'The Hacker News', url: 'https://thehackernews.com', desc: 'Cybersecurity news' },
@@ -79,8 +79,8 @@ export default function Resources() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Security Resources</h1>
-        <p className="mt-0.5 text-sm text-slate-400">
+        <h1 className="text-2xl font-bold text-fg">Security Resources</h1>
+        <p className="mt-0.5 text-sm text-muted">
           Curated collection of security tools, databases, frameworks, and communities
         </p>
       </div>
@@ -88,7 +88,7 @@ export default function Resources() {
       <div className="space-y-6">
         {RESOURCE_CATEGORIES.map((category) => (
           <section key={category.title}>
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-white">
+            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-fg">
               <category.icon className={`h-5 w-5 ${category.color}`} />
               {category.title}
             </h2>
@@ -99,13 +99,13 @@ export default function Resources() {
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-start justify-between rounded-lg border border-slate-800 bg-slate-900/40 px-4 py-3 transition hover:border-slate-700"
+                  className="group flex items-start justify-between rounded-lg border border-border bg-surface-2/40 px-4 py-3 transition hover:border-border-strong"
                 >
                   <div>
-                    <p className="text-sm font-medium text-slate-200 group-hover:text-sky-300">{item.name}</p>
-                    <p className="mt-0.5 text-xs text-slate-400">{item.desc}</p>
+                    <p className="text-sm font-medium text-fg group-hover:text-accent">{item.name}</p>
+                    <p className="mt-0.5 text-xs text-muted">{item.desc}</p>
                   </div>
-                  <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-slate-400 group-hover:text-sky-400" />
+                  <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-muted group-hover:text-accent" />
                 </a>
               ))}
             </div>

@@ -31,3 +31,24 @@ test.describe('accessibility (WCAG 2.1 AA)', () => {
     })
   }
 })
+
+// Light-mode accessibility — verify the theme switch produces no contrast
+// regressions (the toggle persists to localStorage, so we set light explicitly).
+test.describe('accessibility (WCAG 2.1 AA) — Light mode', () => {
+  test.setTimeout(60000)
+  const LIGHT_PAGES = [
+    ['/', 'KEV Dashboard'],
+    ['/actors', 'Threat Actors'],
+  ]
+  for (const [path, heading] of LIGHT_PAGES) {
+    test(`no axe violations in light mode on ${path}`, async ({ page }) => {
+      await page.addInitScript(() => localStorage.setItem('threatscope-theme', 'light'))
+      await page.goto(`/#${path}`)
+      await page.getByRole('heading', { name: heading }).waitFor()
+      const results = await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+        .analyze()
+      expect(results.violations).toEqual([])
+    })
+  }
+})

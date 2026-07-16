@@ -145,27 +145,27 @@ export default function AttackGraph() {
     <div className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-white"><Share2 className="h-6 w-6 text-sky-400" /> Attack Graph</h1>
-          <p className="text-sm text-slate-400">Real ATT&CK relationships — {nodes.length ? nodes.length : '…'} nodes, {edges.length} actor→technique edges. Click a node to isolate its neighborhood.</p>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-fg"><Share2 className="h-6 w-6 text-accent" /> Attack Graph</h1>
+          <p className="text-sm text-muted">Real ATT&CK relationships — {nodes.length ? nodes.length : '…'} nodes, {edges.length} actor→technique edges. Click a node to isolate its neighborhood.</p>
         </div>
       </header>
 
-      {isLoading && <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-8 text-center text-slate-400">Building graph…</div>}
-      {error && <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-300">{error}</div>}
+      {isLoading && <div className="rounded-2xl border border-border bg-surface-2/40 p-8 text-center text-muted">Building graph…</div>}
+      {error && <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-danger">{error}</div>}
 
       {!isLoading && !error && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               type="text" value={query} onChange={(e) => setQuery(e.target.value)}
               placeholder="Highlight node by name (group or technique)…"
               aria-label="Search graph nodes"
-              className="w-full rounded-xl border border-slate-800 bg-slate-900/60 py-2 pl-9 pr-3 text-sm text-slate-200 placeholder-slate-500 focus:border-sky-500 focus:outline-none"
+              className="w-full rounded-xl border border-border bg-surface-2/60 py-2 pl-9 pr-3 text-sm text-fg placeholder-slate-500 focus:border-accent focus:outline-none"
             />
           </div>
           {focus && (
-            <button onClick={() => setFocus(null)} className="inline-flex items-center gap-1 rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800">
+            <button onClick={() => setFocus(null)} className="inline-flex items-center gap-1 rounded-xl border border-border-strong px-3 py-2 text-sm text-muted hover:bg-surface-2">
               <X className="h-3.5 w-3.5" /> Clear focus {focusNode?.label}
             </button>
           )}
@@ -174,21 +174,21 @@ export default function AttackGraph() {
 
       {!isLoading && !error && topTech.length > 0 && (
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <div className="col-span-full mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <div className="col-span-full mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
             <Link2 className="h-3.5 w-3.5" /> Most-targeted techniques (by actor count)
           </div>
           {topTech.map(t => (
             <button key={t.id} onClick={() => setFocus(t.id)}
-              className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-left hover:border-slate-700 hover:bg-slate-900/70">
-              <span className="truncate text-sm text-slate-200">{t.label}</span>
-              <span className="ml-2 shrink-0 rounded-full bg-indigo-500/10 px-2 py-0.5 text-xs text-indigo-300">{t.deg}</span>
+              className="flex items-center justify-between rounded-xl border border-border bg-surface-2/40 px-3 py-2 text-left hover:border-border-strong hover:bg-surface-2/70">
+              <span className="truncate text-sm text-fg">{t.label}</span>
+              <span className="ml-2 shrink-0 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">{t.deg}</span>
             </button>
           ))}
         </div>
       )}
 
       {!isLoading && !error && nodes.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60">
+        <div className="overflow-hidden rounded-2xl border border-border bg-bg/60">
           <svg ref={svgRef} viewBox="0 0 960 600" className="h-[600px] w-full" role="img" aria-label="Force-directed attack graph of threat actors and ATT&CK techniques">
             {edges.map((e, i) => {
               const a = pos[e.s], b = pos[e.t]
@@ -206,14 +206,14 @@ export default function AttackGraph() {
                 <g key={n.id} transform={`translate(${p.x},${p.y})`} className="cursor-pointer" onClick={() => setFocus(n.id)} opacity={dim ? 0.25 : 1}>
                   <circle r={r} fill={fill} stroke={focus === n.id ? '#e2e8f0' : '#0f172a'} strokeWidth={focus === n.id ? 2 : 1} />
                   {(focus === n.id || (!focus && !q && n.deg > 12)) && (
-                    <text x={r + 3} y={3} className="fill-slate-300 text-[9px]">{n.label.length > 22 ? n.label.slice(0, 22) + '…' : n.label}</text>
+                    <text x={r + 3} y={3} className="fill-surface text-[9px]">{n.label.length > 22 ? n.label.slice(0, 22) + '…' : n.label}</text>
                   )}
                 </g>
               )
             })}
           </svg>
-          <div className="flex items-center gap-4 border-t border-slate-800 px-4 py-2 text-xs text-slate-400">
-            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-red-400" /> Threat actor ({actors.length})</span>
+          <div className="flex items-center gap-4 border-t border-border px-4 py-2 text-xs text-muted">
+            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-danger" /> Threat actor ({actors.length})</span>
             <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-indigo-400" /> ATT&CK technique ({techs.filter(t => edges.some(e => e.t === t.id)).length})</span>
             <span className="ml-auto">Node size = relationship count</span>
           </div>

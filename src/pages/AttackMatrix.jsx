@@ -87,27 +87,27 @@ export default function AttackMatrix() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">MITRE ATT&CK Matrix</h1>
-        <p className="mt-0.5 text-sm text-slate-400">
+        <h1 className="text-2xl font-bold text-fg">MITRE ATT&CK Matrix</h1>
+        <p className="mt-0.5 text-sm text-muted">
           Interactive Enterprise ATT&CK framework — browse techniques by tactic
         </p>
       </div>
 
       {isLoading && (
-        <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm text-slate-300">
-          <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+        <div className="rounded-xl border border-border bg-surface-2/60 p-8 text-center text-sm text-muted">
+          <div className="mx-auto mb-3 h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
           Loading ATT&CK data...
         </div>
       )}
 
       {error && (
-        <div className="rounded-xl border border-red-500/70 bg-red-500/10 p-6 text-sm text-red-200">
+        <div className="rounded-xl border border-red-500/70 bg-danger-soft p-6 text-sm text-danger">
           Error loading ATT&CK data: {error}. The dataset may still be syncing — please refresh shortly.
         </div>
       )}
 
       {!isLoading && !error && techniques.length === 0 && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-6 text-sm text-amber-300">
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-6 text-sm text-warning">
           ATT&CK data is still loading or could not be fetched. Please try refreshing the page.
         </div>
       )}
@@ -119,8 +119,8 @@ export default function AttackMatrix() {
               onClick={() => setSelectedTactic('')}
               className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                 !selectedTactic
-                  ? 'border-sky-500/70 bg-sky-500/10 text-sky-300'
-                  : 'border-slate-700 bg-slate-900/40 text-slate-400 hover:border-slate-500'
+                  ? 'border-sky-500/70 bg-accent-soft text-accent-ink'
+                  : 'border-border-strong bg-surface-2/40 text-muted hover:border-border-strong'
               }`}
             >
               All Tactics ({techniques.length})
@@ -134,8 +134,8 @@ export default function AttackMatrix() {
                   onClick={() => setSelectedTactic(active ? '' : tactic)}
                   className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
                     active
-                      ? 'border-sky-500/70 bg-sky-500/10 text-sky-300'
-                      : 'border-slate-700 bg-slate-900/40 text-slate-400 hover:border-slate-500'
+                      ? 'border-sky-500/70 bg-accent-soft text-accent-ink'
+                      : 'border-border-strong bg-surface-2/40 text-muted hover:border-border-strong'
                   }`}
                 >
                   {TACTIC_NAMES[tactic]} ({count})
@@ -146,12 +146,12 @@ export default function AttackMatrix() {
 
           <div className="mb-6">
             <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               <input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search techniques by ID, name, or keyword..."
-                className="w-full rounded-xl border border-slate-800 bg-slate-900/60 px-9 py-2.5 text-sm text-slate-100 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-xl border border-border bg-surface-2/60 px-9 py-2.5 text-sm text-fg placeholder:text-muted focus:border-accent focus:outline-none"
               />
             </div>
           </div>
@@ -161,17 +161,17 @@ export default function AttackMatrix() {
               {TACTIC_ORDER.map((tactic) => {
                 const techs = matrix.get(tactic) || []
                 return (
-                  <div key={tactic} className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+                  <div key={tactic} className="rounded-xl border border-border bg-surface-2/60 p-4">
                     <div className="mb-3 flex items-center justify-between">
                       <div>
-                        <h2 className="text-sm font-semibold text-white">
+                        <h2 className="text-sm font-semibold text-fg">
                           {TACTIC_NAMES[tactic]}
                         </h2>
-                        <p className="text-xs text-slate-400">{techs.length} techniques</p>
+                        <p className="text-xs text-muted">{techs.length} techniques</p>
                       </div>
                       <button
                         onClick={() => setSelectedTactic(tactic)}
-                        className="text-xs text-sky-400 hover:text-sky-300"
+                        className="text-xs text-accent hover:text-accent"
                       >
                         View all →
                       </button>
@@ -181,14 +181,14 @@ export default function AttackMatrix() {
                         <button
                           key={tech.id}
                           onClick={() => setSelectedTechnique(tech)}
-                          className="rounded-md border border-slate-700 bg-slate-800/60 px-2 py-1 text-xs text-slate-300 hover:border-sky-500/50 hover:text-white"
+                          className="rounded-md border border-border-strong bg-surface-2/60 px-2 py-1 text-xs text-muted hover:border-sky-500/50 hover:text-fg"
                         >
                           <span className="font-mono font-semibold">{tech.id}</span>{' '}
-                          <span className="text-slate-400">{tech.name}</span>
+                          <span className="text-muted">{tech.name}</span>
                         </button>
                       ))}
                       {techs.length > 12 && (
-                        <span className="rounded-md border border-slate-800 px-2 py-1 text-xs text-slate-400">
+                        <span className="rounded-md border border-border px-2 py-1 text-xs text-muted">
                           +{techs.length - 12} more
                         </span>
                       )}
@@ -199,31 +199,31 @@ export default function AttackMatrix() {
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="mb-3 text-sm text-slate-400">
+              <p className="mb-3 text-sm text-muted">
                 {filteredTechniques.length} technique{filteredTechniques.length !== 1 ? 's' : ''} found
               </p>
               {filteredTechniques.map((tech) => (
                 <div
                   key={tech.id}
-                  className="cursor-pointer rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition hover:border-slate-600"
+                  className="cursor-pointer rounded-xl border border-border bg-surface-2/60 p-4 transition hover:border-border-strong"
                   onClick={() => setSelectedTechnique(tech)}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm font-bold text-sky-400">{tech.id}</span>
-                        <span className="text-sm font-medium text-white">{tech.name}</span>
+                        <span className="font-mono text-sm font-bold text-accent">{tech.id}</span>
+                        <span className="text-sm font-medium text-fg">{tech.name}</span>
                       </div>
-                      <p className="mt-1 text-xs text-slate-400 line-clamp-2">{(tech.description || '').slice(0, 200)}...</p>
+                      <p className="mt-1 text-xs text-muted line-clamp-2">{(tech.description || '').slice(0, 200)}...</p>
                       <div className="mt-2 flex flex-wrap gap-1">
                         {tech.tactics.map((t) => (
-                          <span key={t} className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] text-slate-400">
+                          <span key={t} className="rounded-full border border-border-strong px-2 py-0.5 text-[10px] text-muted">
                             {TACTIC_NAMES[t] || t}
                           </span>
                         ))}
                       </div>
                     </div>
-                    <Crosshair className="h-4 w-4 shrink-0 text-slate-400" />
+                    <Crosshair className="h-4 w-4 shrink-0 text-muted" />
                   </div>
                 </div>
               ))}
@@ -233,24 +233,24 @@ export default function AttackMatrix() {
       )}
 
       {selectedTechnique && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setSelectedTechnique(null)}>
-          <div className="w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay/70 p-4" onClick={() => setSelectedTechnique(null)}>
+          <div className="w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-xl border border-border-strong bg-surface-2 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="font-mono text-sm font-bold text-sky-400">{selectedTechnique.id}</p>
-                <h3 className="mt-1 text-lg font-semibold text-white">{selectedTechnique.name}</h3>
+                <p className="font-mono text-sm font-bold text-accent">{selectedTechnique.id}</p>
+                <h3 className="mt-1 text-lg font-semibold text-fg">{selectedTechnique.name}</h3>
               </div>
-              <button onClick={() => setSelectedTechnique(null)} className="rounded-md border border-slate-700 p-1.5 text-slate-300 hover:text-white">✕</button>
+              <button onClick={() => setSelectedTechnique(null)} className="rounded-md border border-border-strong p-1.5 text-muted hover:text-fg">✕</button>
             </div>
 
             <div className="mt-4 space-y-4">
               <div>
-                <h4 className="text-xs uppercase tracking-wider text-slate-400">Description</h4>
-                <p className="mt-1 whitespace-pre-line text-sm text-slate-200">{selectedTechnique.description}</p>
+                <h4 className="text-xs uppercase tracking-wider text-muted">Description</h4>
+                <p className="mt-1 whitespace-pre-line text-sm text-fg">{selectedTechnique.description}</p>
               </div>
 
               <div>
-                <h4 className="text-xs uppercase tracking-wider text-slate-400">Tactics</h4>
+                <h4 className="text-xs uppercase tracking-wider text-muted">Tactics</h4>
                 <div className="mt-1 flex flex-wrap gap-2">
                   {selectedTechnique.tactics.map((t) => (
                     <span key={t} className="rounded-full border border-violet-500/40 bg-violet-500/10 px-2.5 py-0.5 text-xs text-violet-300">
@@ -262,15 +262,15 @@ export default function AttackMatrix() {
 
               {selectedTechnique.platforms?.length > 0 && (
                 <div>
-                  <h4 className="text-xs uppercase tracking-wider text-slate-400">Platforms</h4>
-                  <p className="mt-1 text-sm text-slate-300">{selectedTechnique.platforms.join(', ')}</p>
+                  <h4 className="text-xs uppercase tracking-wider text-muted">Platforms</h4>
+                  <p className="mt-1 text-sm text-muted">{selectedTechnique.platforms.join(', ')}</p>
                 </div>
               )}
 
               {selectedTechnique.detection && (
                 <div>
-                  <h4 className="text-xs uppercase tracking-wider text-slate-400">Detection</h4>
-                  <p className="mt-1 whitespace-pre-line text-sm text-slate-300">{selectedTechnique.detection}</p>
+                  <h4 className="text-xs uppercase tracking-wider text-muted">Detection</h4>
+                  <p className="mt-1 whitespace-pre-line text-sm text-muted">{selectedTechnique.detection}</p>
                 </div>
               )}
 
@@ -278,7 +278,7 @@ export default function AttackMatrix() {
                 href={selectedTechnique.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-sky-500/70 bg-sky-500/10 px-4 py-2 text-sm font-medium text-sky-300 hover:bg-sky-500/20"
+                className="inline-flex items-center gap-2 rounded-lg border border-sky-500/70 bg-accent-soft px-4 py-2 text-sm font-medium text-accent hover:bg-sky-500/20"
               >
                 View on MITRE ATT&CK <ExternalLink className="h-4 w-4" />
               </a>

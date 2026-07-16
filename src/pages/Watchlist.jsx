@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Bookmark, BookmarkPlus, Trash2, Bell, Send, Clock, AlertTriangle, X } from 'lucide-react'
+import { Bookmark, BookmarkPlus, Trash2, Bell, Send, Clock, AlertTriangle } from 'lucide-react'
 
 const KEV_PATH = '/data/cisa-kev.json'
 const ACTORS_PATH = '/data/attack-actors.json'
@@ -71,7 +71,6 @@ export default function Watchlist() {
     setAddErr('')
     const raw = addId.trim()
     if (!raw) return
-    const id = raw.toUpperCase().replace(/^CVE-?/i, (m) => m).replace(/(\w+-\d+-\d+)/, 'CVE-$1')
     const cveMatch = raw.match(/CVE-\d{4}-\d{4,}/i)
     const normId = cveMatch ? cveMatch[0].toUpperCase() : raw
     const isCve = !!cveMatch
@@ -99,7 +98,7 @@ export default function Watchlist() {
     }
     setWebhookMsg('Sending…')
     try {
-      const res = await fetch(webhook.trim(), {
+      await fetch(webhook.trim(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -115,58 +114,58 @@ export default function Watchlist() {
     <div className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-white"><Bookmark className="h-6 w-6 text-sky-400" /> Watchlist</h1>
-          <p className="text-sm text-slate-400">Track CVEs and threat actors locally. New KEV additions since your last visit are flagged automatically.</p>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-fg"><Bookmark className="h-6 w-6 text-accent" /> Watchlist</h1>
+          <p className="text-sm text-muted">Track CVEs and threat actors locally. New KEV additions since your last visit are flagged automatically.</p>
         </div>
         {newCount > 0 && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1.5 text-sm font-medium text-amber-300">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1.5 text-sm font-medium text-warning">
             <AlertTriangle className="h-4 w-4" /> {newCount} new since last visit
           </span>
         )}
       </header>
 
-      {isLoading && <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-8 text-center text-slate-400">Loading watchlist…</div>}
+      {isLoading && <div className="rounded-2xl border border-border bg-surface-2/40 p-8 text-center text-muted">Loading watchlist…</div>}
 
       {!isLoading && (
         <>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <BookmarkPlus className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <BookmarkPlus className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               <input
                 type="text" value={addId} onChange={(e) => setAddId(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()}
                 placeholder="Add CVE (e.g. CVE-2024-1234) or actor ID (G####)…"
                 aria-label="Add to watchlist"
-                className="w-full rounded-xl border border-slate-800 bg-slate-900/60 py-2 pl-9 pr-3 text-sm text-slate-200 placeholder-slate-500 focus:border-sky-500 focus:outline-none"
+                className="w-full rounded-xl border border-border bg-surface-2/60 py-2 pl-9 pr-3 text-sm text-fg placeholder-slate-500 focus:border-accent focus:outline-none"
               />
             </div>
-            <button onClick={add} className="rounded-xl border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-sm font-medium text-sky-300 hover:bg-sky-500/20">Add</button>
+            <button onClick={add} className="rounded-xl border border-sky-500/40 bg-accent-soft px-4 py-2 text-sm font-medium text-accent hover:bg-sky-500/20">Add</button>
             {items.length > 0 && (
-              <button onClick={markAllSeen} className="rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800">
+              <button onClick={markAllSeen} className="rounded-xl border border-border-strong px-3 py-2 text-sm text-muted hover:bg-surface-2">
                 <Clock className="mr-1 inline h-3.5 w-3.5" /> Mark all seen
               </button>
             )}
           </div>
-          {addErr && <p className="text-xs text-red-400">{addErr}</p>}
+          {addErr && <p className="text-xs text-danger">{addErr}</p>}
 
           {items.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 p-10 text-center text-slate-400">
+            <div className="rounded-2xl border border-dashed border-border bg-surface-2/30 p-10 text-center text-muted">
               <Bookmark className="mx-auto mb-2 h-8 w-8 opacity-40" />
               Your watchlist is empty. Add a CVE or threat-actor ID above. Stored only in this browser.
             </div>
           ) : (
-            <ul className="divide-y divide-slate-800 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/40">
+            <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface-2/40">
               {enriched.map(e => (
                 <li key={e.id} className="flex items-center gap-3 px-4 py-3">
-                  <span className={`rounded-md px-2 py-0.5 text-xs ${e.kind === 'cve' ? 'bg-red-500/10 text-red-300' : 'bg-indigo-500/10 text-indigo-300'}`}>{e.kind === 'cve' ? 'CVE' : 'ACTOR'}</span>
+                  <span className={`rounded-md px-2 py-0.5 text-xs ${e.kind === 'cve' ? 'bg-danger-soft text-danger-ink' : 'bg-indigo-100 text-indigo-700'}`}>{e.kind === 'cve' ? 'CVE' : 'ACTOR'}</span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-slate-100">{e.label}</span>
-                      {e.isNew && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-300">New</span>}
+                      <span className="font-medium text-fg">{e.label}</span>
+                      {e.isNew && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-warning">New</span>}
                     </div>
-                    <p className="truncate text-xs text-slate-400">{e.extra}{e.added ? ` · added ${e.added}` : ''}</p>
+                    <p className="truncate text-xs text-muted">{e.extra}{e.added ? ` · added ${e.added}` : ''}</p>
                   </div>
-                  {!e.live && <span className="text-[10px] text-slate-600">inactive</span>}
-                  <button onClick={() => remove(e.id)} aria-label={`Remove ${e.id}`} className="rounded-lg border border-slate-700 p-1.5 text-slate-400 hover:bg-slate-800 hover:text-red-300">
+                  {!e.live && <span className="text-[10px] text-muted">inactive</span>}
+                  <button onClick={() => remove(e.id)} aria-label={`Remove ${e.id}`} className="rounded-lg border border-border-strong p-1.5 text-muted hover:bg-surface-2 hover:text-danger">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </li>
@@ -174,21 +173,21 @@ export default function Watchlist() {
             </ul>
           )}
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
-            <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-200"><Bell className="h-4 w-4 text-sky-400" /> Optional outbound alert</h2>
-            <p className="mb-3 text-xs text-slate-400">Paste a Slack/Discord/Teams webhook URL. We never store it on a server — it lives in your browser and is only used when you click send.</p>
+          <div className="rounded-2xl border border-border bg-surface-2/40 p-4">
+            <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-fg"><Bell className="h-4 w-4 text-accent" /> Optional outbound alert</h2>
+            <p className="mb-3 text-xs text-muted">Paste a Slack/Discord/Teams webhook URL. We never store it on a server — it lives in your browser and is only used when you click send.</p>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <input
                 type="url" value={webhook} onChange={(e) => { setWebhook(e.target.value); saveLS('threatscope_webhook', e.target.value) }}
                 placeholder="https://hooks.slack.com/services/…"
                 aria-label="Webhook URL for alerts"
-                className="flex-1 rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:border-sky-500 focus:outline-none"
+                className="flex-1 rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-sm text-fg placeholder-slate-500 focus:border-accent focus:outline-none"
               />
-              <button onClick={sendAlert} className="inline-flex items-center gap-1.5 rounded-xl border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-sm font-medium text-sky-300 hover:bg-sky-500/20">
+              <button onClick={sendAlert} className="inline-flex items-center gap-1.5 rounded-xl border border-sky-500/40 bg-accent-soft px-4 py-2 text-sm font-medium text-accent hover:bg-sky-500/20">
                 <Send className="h-4 w-4" /> Send digest
               </button>
             </div>
-            {webhookMsg && <p className="mt-2 text-xs text-slate-400">{webhookMsg}</p>}
+            {webhookMsg && <p className="mt-2 text-xs text-muted">{webhookMsg}</p>}
           </div>
         </>
       )}

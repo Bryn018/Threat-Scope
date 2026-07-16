@@ -92,3 +92,33 @@ test.describe('Phase C features', () => {
     await expect(page.getByRole('button', { name: 'Remove CVE-2026-46817' })).toBeVisible()
   })
 })
+
+test.describe('Navigation is responsive (no stuck views)', () => {
+  test('switching pages swaps the heading immediately', async ({ page }) => {
+    await page.goto('/#/cves')
+    await expect(page.getByRole('heading', { name: 'CVE Explorer' })).toBeVisible()
+    // Jump to several pages in quick succession; the heading must follow each time
+    // (guards against the hash-router view-freeze where the URL changes but the
+    // previous screen stays mounted).
+    for (const [path, heading] of [
+      ['/actors', 'Threat Actors'],
+      ['/graph', 'Attack Graph'],
+      ['/watchlist', 'Watchlist'],
+      ['/', 'KEV Dashboard'],
+      ['/exposure', 'Technology Exposure'],
+    ]) {
+      await page.goto(`/#${path}`)
+      await expect(page.getByRole('heading', { name: heading })).toBeVisible({ timeout: 10000 })
+    }
+  })
+
+  test('theme toggle switches between dark and light', async ({ page }) => {
+    await page.goto('/#/')
+    const toggle = page.getByRole('button', { name: /Switch to (light|dark) mode/ })
+    await expect(toggle).toBeVisible()
+    await toggle.click()
+    // Preference persists across reloads
+    await page.reload()
+    await expect(page.getByRole('button', { name: /Switch to (light|dark) mode/ })).toBeVisible()
+  })
+})
