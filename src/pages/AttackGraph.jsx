@@ -1,96 +1,33 @@
-/* eslint-disable react-hooks/preserve-manual-memoization -- graph data memo intentionally hand-rolled for the force simulation */
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Share2, Search, X, Link2, Maximize2, Eye, EyeOff } from 'lucide-react'
+/* eslint-disable react-hooks/preserve-manual-memoization -- data memo intentionally hand-rolled */
+import { useEffect, useMemo, useState } from 'react'
+import { Share2, Search, X, Link2, Filter } from 'lucide-react'
 
 const ACTORS_PATH = '/data/attack-actors.json'
 const TECH_PATH = '/data/attack-enterprise.json'
 
-// Compact dependency-free force simulation (Fruchterman–Reingold-ish).
-function useForceGraph(nodes, edges, { width = 960, height = 600 } = {}) {
-  const [pos, setPos] = useState({})
-  const raf = useRef(0)
-  const state = useRef({})
-
-  useEffect(() => {
-    if (!nodes.length) return
-    const W = width, H = height
-    const p = {}
-    nodes.forEach((n, i) => {
-      const baseX = n.type === 'group' ? W * 0.26 : W * 0.74
-      const a = (i / nodes.length) * Math.PI * 2
-      p[n.id] = { x: baseX + (Math.random() - 0.5) * 60, y: H / 2 + Math.sin(a) * 230 + (Math.random() - 0.5) * 30, vx: 0, vy: 0 }
-    })
-    const adj = {}
-    edges.forEach(e => { (adj[e.s] = adj[e.s] || []).push(e.t); (adj[e.t] = adj[e.t] || []).push(e.s) })
-    const k = Math.sqrt((W * H) / nodes.length) * 0.6
-    let alpha = 1
-    const step = () => {
-      const disp = {}
-      nodes.forEach(n => disp[n.id] = { x: 0, y: 0 })
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const a = p[nodes[i].id], b = p[nodes[j].id]
-          let dx = a.x - b.x, dy = a.y - b.y
-          let d2 = dx * dx + dy * dy || 0.01
-          const f = (k * k) / d2
-          const d = Math.sqrt(d2)
-          const fx = (dx / d) * f, fy = (dy / d) * f
-          disp[nodes[i].id].x += fx; disp[nodes[i].id].y += fy
-          disp[nodes[j].id].x -= fx; disp[nodes[j].id].y -= fy
-        }
-      }
-      // attraction along edges
-      edges.forEach(e => {
-        const a = p[e.s], b = p[e.t]
-        let dx = a.x - b.x, dy = a.y - b.y
-        const d = Math.sqrt(dx * dx + dy * dy) || 0.01
-        const f = (d * d) / k
-        const fx = (dx / d) * f, fy = (dy / d) * f
-        disp[e.s].x -= fx; disp[e.s].y -= fy
-        disp[e.t].x += fx; disp[e.t].y += fy
-      })
-      // gravity + bipartite x-bias: actors left, techniques right (separates the two
-      // classes into vertical bands, which slashes edge crossings — the #1 readability killer)
-      nodes.forEach(n => {
-        const c = p[n.id]
-        const targetX = n.type === 'group' ? W * 0.26 : W * 0.74
-        disp[n.id].x += (targetX - c.x) * 0.035
-        disp[n.id].y += (H / 2 - c.y) * 0.012
-      })
-      const t = alpha
-      nodes.forEach(n => {
-        const c = p[n.id], d = disp[n.id]
-        const dl = Math.sqrt(d.x * d.x + d.y * d.y) || 0.01
-        c.x += (d.x / dl) * Math.min(dl, t * 30)
-        c.y += (d.y / dl) * Math.min(dl, t * 30)
-        c.x = Math.max(20, Math.min(W - 20, c.x))
-        c.y = Math.max(20, Math.min(H - 20, c.y))
-      })
-      setPos({ ...p })
-      alpha *= 0.97
-      if (alpha > 0.02) raf.current = requestAnimationFrame(step)
-    }
-    state.current = p
-    raf.current = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(raf.current)
-  }, [nodes, edges, width, height])
-
-  return pos
+// Canonical ATT&CK enterprise tactic order (lays out the matrix columns left→right).
+const TACTIC_ORDER = [
+  'reconnaissance', 'resource-development', 'initial-access', 'execution',
+  'persistence', 'privilege-escalation', 'defense-impairment', 'discovery',
+  'lateral-movement', 'collection', 'command-and-control', 'exfiltration',
+  'impact', 'stealth', 'credential-access',
+]
+const TACTIC_LABEL = {
+  reconnaissance: 'Recon', 'resource-development': 'Resource Dev', 'initial-access': 'Initial Access',
+  execution: 'Execution', persistence: 'Persistence', 'privilege-escalation': 'Priv. Esc.',
+  'defense-impairment': 'Defense Impair', discovery: 'Discovery', 'lateral-movement': 'Lateral Move',
+  collection: 'Collection', 'command-and-control': 'C2', exfiltration: 'Exfil', impact: 'Impact',
+  stealth: 'Stealth', 'credential-access': 'Credential Access',
 }
 
 export default function AttackGraph() {
-  const W = 960, H = 600
   const [actors, setActors] = useState([])
   const [techs, setTechs] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
   const [focus, setFocus] = useState(null)
-  const [hover, setHover] = useState(null)
-  const [showLabels, setShowLabels] = useState(false)
-  const [view, setView] = useState({ k: 1, x: 0, y: 0 })
-  const svgRef = useRef(null)
-  const pan = useRef(null)
+  const [hover, setHover] = useState(null) // { type: 'row' | 'col', id }
 
   useEffect(() => {
     const controller = new AbortController()
@@ -114,100 +51,93 @@ export default function AttackGraph() {
     return () => controller.abort()
   }, [])
 
-  const { nodes, edges, topTech, techById, actorById } = useMemo(() => {
-    if (!actors.length || !techs.length) return { nodes: [], edges: [], topTech: [], techById: {}, actorById: {} }
-    const techSet = new Set(techs.map(t => t.id))
-    const edges = []
-    const deg = {}
-    for (const a of actors) {
-      for (const tid of a.techniques) {
-        if (!techSet.has(tid)) continue
-        edges.push({ s: a.id, t: tid })
-        deg[tid] = (deg[tid] || 0) + 1
-        deg[a.id] = (deg[a.id] || 0) + 1
-      }
+  const model = useMemo(() => {
+    if (!actors.length || !techs.length) {
+      return { rows: [], cols: [], colGroups: [], edgeSet: new Set(), maxDeg: 1, topTech: [], techById: {}, actorById: {}, techDeg: {} }
     }
-    const actorNodes = actors.map(a => ({ id: a.id, label: a.name, type: 'group', deg: deg[a.id] || 0 }))
-    const usedTech = new Set(edges.map(e => e.t))
-    const techNodes = techs.filter(t => usedTech.has(t.id)).map(t => ({ id: t.id, label: t.name, type: 'tech', deg: deg[t.id] || 0 }))
-    const nodes = [...actorNodes, ...techNodes]
-    const topTech = [...techNodes].sort((a, b) => b.deg - a.deg).slice(0, 12)
     const techById = Object.fromEntries(techs.map(t => [t.id, t]))
     const actorById = Object.fromEntries(actors.map(a => [a.id, a]))
-    return { nodes, edges, topTech, techById, actorById }
+
+    const actorDeg = {}, techDeg = {}
+    actors.forEach(a => a.techniques.forEach(tid => {
+      if (techById[tid]) { actorDeg[a.id] = (actorDeg[a.id] || 0) + 1; techDeg[tid] = (techDeg[tid] || 0) + 1 }
+    }))
+    const maxDeg = Math.max(1, ...Object.values(techDeg))
+
+    const rows = actors
+      .filter(a => (actorDeg[a.id] || 0) > 0)
+      .map(a => ({ id: a.id, label: a.name, deg: actorDeg[a.id] || 0 }))
+      .sort((a, b) => b.deg - a.deg)
+
+    // columns: techniques used by >=1 actor, grouped by tactic, sorted by popularity within group
+    const grouped = {}
+    const used = new Set(rows.flatMap(r => actorById[r.id].techniques.filter(t => techById[t])))
+    used.forEach(tid => {
+      const t = techById[tid]
+      const tac = (t.tactics && t.tactics[0]) || 'execution'
+      ;(grouped[tac] = grouped[tac] || []).push({ id: tid, label: t.name, deg: techDeg[tid] || 0 })
+    })
+    const colGroups = TACTIC_ORDER.filter(tc => grouped[tc]).map(tac => ({
+      tac,
+      label: TACTIC_LABEL[tac] || tac,
+      items: grouped[tac].sort((a, b) => b.deg - a.deg),
+    }))
+    const cols = colGroups.flatMap(g => g.items)
+    const edgeSet = new Set()
+    rows.forEach(r => actorById[r.id].techniques.forEach(tid => {
+      if (techById[tid]) edgeSet.add(r.id + '|' + tid)
+    }))
+    const topTech = [...cols].sort((a, b) => b.deg - a.deg).slice(0, 12)
+    return { rows, cols, colGroups, edgeSet, maxDeg, topTech, techById, actorById, techDeg }
   }, [actors, techs])
 
-  const pos = useForceGraph(nodes, edges, { width: W, height: H })
+  const { rows, cols, colGroups, edgeSet, maxDeg, topTech, techById, actorById, techDeg } = model
 
   const q = query.trim().toLowerCase()
-  const focusNode = focus ? nodes.find(n => n.id === focus) : null
-  const neighborIds = useMemo(() => {
-    if (!focus) return null
-    const s = new Set([focus])
-    edges.forEach(e => { if (e.s === focus) s.add(e.t); if (e.t === focus) s.add(e.s) })
-    return s
-  }, [focus, edges])
+  const visibleRows = useMemo(() => q ? rows.filter(r => r.label.toLowerCase().includes(q)) : rows, [rows, q])
+  const rowIndex = useMemo(() => Object.fromEntries(visibleRows.map((r, i) => [r.id, i])), [visibleRows])
+  const colIndex = useMemo(() => Object.fromEntries(cols.map((c, i) => [c.id, i])), [cols])
 
-  const isDim = (id) => {
-    if (q) return !id.toLowerCase().includes(q) && !(focusNode && focusNode.label.toLowerCase().includes(q))
-    if (neighborIds) return !neighborIds.has(id)
-    return false
-  }
+  const focusNode = focus ? (actorById[focus] ? { type: 'group', label: actorById[focus].name }
+    : techById[focus] ? { type: 'tech', label: techById[focus].name } : null) : null
 
-  // Detail panel content for the focused node
   const detail = useMemo(() => {
     if (!focus) return null
-    if (focusNode?.type === 'group') {
+    if (actorById[focus]) {
       const a = actorById[focus]
-      const list = (a?.techniques || []).filter(tid => techById[tid]).map(tid => ({ id: tid, label: techById[tid].name }))
-      return { kind: 'actor', title: a?.name || focusNode.label, sub: `${list.length} ATT&CK techniques used`, list }
+      const list = (a.techniques || []).filter(tid => techById[tid]).map(tid => ({ id: tid, label: techById[tid].name }))
+      return { kind: 'actor', title: a.name, sub: `${list.length} ATT&CK techniques used`, list }
     }
     const t = techById[focus]
-    const list = edges.filter(e => e.t === focus).map(e => e.s).map(id => ({ id, label: actorById[id]?.name || id }))
-    return { kind: 'tech', title: t?.name || focusNode?.label, sub: `Used by ${list.length} threat actor${list.length === 1 ? '' : 's'}`, list }
-  }, [focus, focusNode, actorById, techById, edges])
+    const list = rows.filter(r => actorById[r.id].techniques.includes(focus)).map(r => ({ id: r.id, label: r.label }))
+    return { kind: 'tech', title: t.name, sub: `Used by ${list.length} threat actor${list.length === 1 ? '' : 's'}`, list }
+  }, [focus, actorById, techById, rows])
 
-  // ---- Zoom / pan ----
-  const toSvg = (clientX, clientY) => {
-    const rect = svgRef.current.getBoundingClientRect()
-    return { x: ((clientX - rect.left) / rect.width) * 960, y: ((clientY - rect.top) / rect.height) * 600 }
+  // hover takes precedence over focus for highlighting
+  const hl = hover || (focus ? { type: focusNode?.type === 'group' ? 'row' : 'col', id: focus } : null)
+  const isDim = (actorId, techId) => {
+    if (!hl) return false
+    return hl.type === 'row' ? actorId !== hl.id : techId !== hl.id
   }
-  const onWheel = (e) => {
-    e.preventDefault()
-    const { x, y } = toSvg(e.clientX, e.clientY)
-    setView(v => {
-      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15
-      const k = Math.max(0.4, Math.min(4, v.k * factor))
-      return { k, x: x - (x - v.x) * (k / v.k), y: y - (y - v.y) * (k / v.k) }
-    })
-  }
-  const onBgDown = (e) => {
-    pan.current = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y }
-  }
-  const onBgMove = (e) => {
-    if (!pan.current) return
-    const rect = svgRef.current.getBoundingClientRect()
-    const dx = ((e.clientX - pan.current.x) / rect.width) * 960
-    const dy = ((e.clientY - pan.current.y) / rect.height) * 600
-    setView(v => ({ ...v, x: pan.current.vx + dx, y: pan.current.vy + dy }))
-  }
-  const endPan = () => { pan.current = null }
 
-  const resetView = () => setView({ k: 1, x: 0, y: 0 })
+  // layout constants
+  const CELL = 13, GAP = 1, GUTTER = 200, HEAD = 78, FOOT = 8
+  const W = GUTTER + cols.length * CELL
+  const H = HEAD + visibleRows.length * CELL + FOOT
 
   return (
     <div className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-fg"><Share2 className="h-6 w-6 text-accent" /> Attack Graph</h1>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-fg"><Share2 className="h-6 w-6 text-accent" /> Attack Matrix</h1>
           <p className="text-sm text-muted">
-            Real ATT&CK relationships — {nodes.length ? nodes.length : '…'} nodes, {edges.length} actor→technique links.
-            Actors sit on the left, techniques on the right. Scroll to zoom, drag to pan, click a node (or empty space to deselect) to inspect.
+            Every lit cell = a threat actor uses that ATT&CK technique. Rows are actors, columns are techniques grouped by
+            kill-chain phase. Hover or click any row or column to inspect it.
           </p>
         </div>
       </header>
 
-      {isLoading && <div className="rounded-2xl border border-border bg-surface-2/40 p-8 text-center text-muted">Building graph…</div>}
+      {isLoading && <div className="rounded-2xl border border-border bg-surface-2/40 p-8 text-center text-muted">Building matrix…</div>}
       {error && <div className="rounded-2xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-danger">{error}</div>}
 
       {!isLoading && !error && (
@@ -216,25 +146,14 @@ export default function AttackGraph() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-              placeholder="Highlight node by name (group or technique)…"
-              aria-label="Search graph nodes"
+              placeholder="Filter actors by name…"
+              aria-label="Filter actors"
               className="w-full rounded-xl border border-border bg-surface-2/60 py-2 pl-9 pr-3 text-sm text-fg placeholder:text-faint focus:border-accent focus:outline-none"
             />
           </div>
-          <button
-            onClick={() => setShowLabels(s => !s)}
-            aria-pressed={showLabels}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border-strong px-3 py-2 text-sm text-muted hover:bg-surface-2"
-          >
-            {showLabels ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-            {showLabels ? 'Hide labels' : 'Show labels'}
-          </button>
-          <button
-            onClick={resetView}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border-strong px-3 py-2 text-sm text-muted hover:bg-surface-2"
-          >
-            <Maximize2 className="h-3.5 w-3.5" /> Reset view
-          </button>
+          <div className="inline-flex items-center gap-1.5 rounded-xl border border-border-strong px-3 py-2 text-sm text-muted">
+            <Filter className="h-3.5 w-3.5" /> {rows.length} actors · {cols.length} techniques · {edgeSet.size} links
+          </div>
           {focus && (
             <button onClick={() => setFocus(null)} className="inline-flex items-center gap-1 rounded-xl border border-border-strong px-3 py-2 text-sm text-muted hover:bg-surface-2">
               <X className="h-3.5 w-3.5" /> Clear ({focusNode?.label})
@@ -258,92 +177,104 @@ export default function AttackGraph() {
         </div>
       )}
 
-      {!isLoading && !error && nodes.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-border bg-bg/60">
+      {!isLoading && !error && cols.length > 0 && (
+        <div className="overflow-auto rounded-2xl border border-border bg-bg/60 attack-matrix" style={{ maxHeight: '70vh' }}>
           <svg
-            ref={svgRef}
-            viewBox="0 0 960 600"
-            className="h-[600px] w-full touch-none select-none"
+            viewBox={`0 0 ${W} ${H}`}
+            width={W} height={H}
+            className="block"
             role="group"
-            aria-label="Force-directed attack graph of threat actors and ATT&CK techniques"
-            onWheel={onWheel}
-            onPointerDown={onBgDown}
-            onPointerMove={onBgMove}
-            onPointerUp={endPan}
-            onPointerLeave={endPan}
-            onClick={() => setFocus(null)}
+            aria-label="Adjacency matrix of threat actors (rows) and ATT&CK techniques (columns)"
           >
-            <g transform={`translate(${view.x},${view.y}) scale(${view.k})`}>
-              {/* Bipartite zone bands + column headers to make the two sides legible */}
-              <rect x={0} y={0} width={W * 0.5} height={H} fill="var(--surface-2)" opacity={0.25} rx={0} />
-              <rect x={W * 0.5} y={0} width={W * 0.5} height={H} fill="var(--surface)" opacity={0.25} rx={0} />
-              <text x={W * 0.26} y={20} textAnchor="middle" className="fill-muted text-[11px] font-semibold uppercase tracking-wider">Threat Actors</text>
-              <text x={W * 0.74} y={20} textAnchor="middle" className="fill-muted text-[11px] font-semibold uppercase tracking-wider">ATT&CK Techniques</text>
-              {edges.map((e, i) => {
-                const a = pos[e.s], b = pos[e.t]
-                if (!a || !b) return null
-                const connected = focus && (e.s === focus || e.t === focus)
-                const dim = isDim(e.s) || isDim(e.t)
-                // gentle quadratic curve: control point offset perpendicular to the edge
-                const mx = (a.x + b.x) / 2
-                const my = (a.y + b.y) / 2
-                const dx = b.x - a.x, dy = b.y - a.y
-                const cx = mx - dy * 0.12
-                const cy = my + dx * 0.12
-                return (
-                  <path key={i} d={`M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}`}
-                    fill="none"
-                    stroke={connected ? 'var(--accent)' : 'var(--border-strong)'}
-                    strokeWidth={connected ? 1.4 : 0.7}
-                    opacity={dim ? 0.08 : (connected ? 0.9 : 0.45)} />
-                )
-              })}
-              {nodes.map(n => {
-                const p = pos[n.id]
-                if (!p) return null
-                const dim = isDim(n.id)
-                const r = 4 + Math.min(11, Math.sqrt(n.deg) * 1.5)
-                const active = focus === n.id || hover === n.id
-                const fill = n.type === 'group' ? 'var(--danger)' : 'var(--attack)'
-                // Level-of-Detail labels: zoom in to reveal more names; high-degree nodes always get one.
-                const lodThreshold = view.k > 1.8 ? 0 : view.k > 1.1 ? 8 : 14
-                const showLabel = active || showLabels || (!focus && !q && n.deg > lodThreshold)
-                return (
-                  <g key={n.id} transform={`translate(${p.x},${p.y})`}
-                    className="cursor-pointer"
-                    opacity={dim ? 0.18 : 1}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`${n.label}, ${n.type === 'group' ? 'threat actor' : 'ATT&CK technique'}, ${n.deg} links`}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={() => setFocus(n.id)}
-                    onPointerEnter={() => setHover(n.id)}
-                    onPointerLeave={() => setHover(h => h === n.id ? null : h)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFocus(n.id) } }}
-                    onFocus={() => setHover(n.id)}
-                    onBlur={() => setHover(null)}
-                  >
-                    <title>{`${n.label} — ${n.type === 'group' ? 'Threat actor' : 'ATT&CK technique'} · ${n.deg} links`}</title>
-                    <circle r={r} fill={fill}
-                      stroke={active ? 'var(--fg)' : 'var(--border-strong)'}
-                      strokeWidth={active ? 2 : 1} />
-                    {showLabel && (
-                      <text x={r + 3} y={3}
-                        className="pointer-events-none fill-fg text-[9px] font-medium"
-                        style={{ paintOrder: 'stroke', stroke: 'var(--bg)', strokeWidth: 2.5 }}>
-                        {n.label.length > 26 ? n.label.slice(0, 26) + '…' : n.label}
-                      </text>
-                    )}
-                  </g>
-                )
-              })}
-            </g>
+            {/* tactic group separators + labels */}
+            {colGroups.map(g => {
+              const gStartCol = cols.findIndex(c => c.id === g.items[0].id)
+              return (
+                <g key={g.tac}>
+                  <line x1={GUTTER + gStartCol * CELL} y1={0} x2={GUTTER + gStartCol * CELL} y2={H} stroke="var(--border-strong)" strokeWidth={1} opacity={0.55} />
+                  <text x={GUTTER + gStartCol * CELL + CELL / 2} y={12} textAnchor="middle" className="fill-faint text-[9px] font-semibold uppercase tracking-wide">{g.label}</text>
+                </g>
+              )
+            })}
+
+            {/* cells: only the lit (linked) ones are drawn */}
+            {visibleRows.map(r => (
+              <g key={r.id} opacity={hl && hl.type === 'row' && hl.id !== r.id ? 0.1 : 1}>
+                {actorById[r.id].techniques.map(tid => {
+                  const ci = colIndex[tid]
+                  if (ci == null) return null
+                  const dim = isDim(r.id, tid)
+                  const intensity = 0.3 + 0.7 * (techDeg[tid] / maxDeg)
+                  return (
+                    <rect
+                      key={tid}
+                      x={GUTTER + ci * CELL} y={HEAD + (rowIndex[r.id] || 0) * CELL}
+                      width={CELL - GAP} height={CELL - GAP} rx={2}
+                      fill="var(--accent)"
+                      opacity={dim ? 0.04 : intensity}
+                      className="cursor-pointer"
+                      onClick={() => setFocus(r.id)}
+                      onMouseEnter={() => setHover({ type: 'row', id: r.id })}
+                      onMouseLeave={() => setHover(null)}
+                    >
+                      <title>{`${r.label} → ${techById[tid]?.name}`}</title>
+                    </rect>
+                  )
+                })}
+              </g>
+            ))}
+
+            {/* column headers (technique IDs), grouped by tactic */}
+            {colGroups.map(g => {
+              const gStartCol = cols.findIndex(c => c.id === g.items[0].id)
+              return (
+                <g key={g.tac + '-h'}>
+                  {g.items.map((it, i) => {
+                    const ci = gStartCol + i
+                    const cx = GUTTER + ci * CELL + CELL / 2
+                    return (
+                      <g key={it.id}
+                        opacity={hl && hl.type === 'col' && hl.id !== it.id ? 0.18 : 1}
+                        className="cursor-pointer"
+                        onClick={() => setFocus(it.id)}
+                        onMouseEnter={() => setHover({ type: 'col', id: it.id })}
+                        onMouseLeave={() => setHover(null)}
+                      >
+                        <rect x={GUTTER + ci * CELL} y={0} width={CELL} height={HEAD} fill="transparent" />
+                        <text x={cx} y={HEAD - 6} transform={`rotate(-90 ${cx} ${HEAD - 6})`} textAnchor="start"
+                          className="fill-muted text-[9px] font-medium">{it.id}</text>
+                        <title>{`${it.label} — used by ${it.deg} actors`}</title>
+                      </g>
+                    )
+                  })}
+                </g>
+              )
+            })}
+
+            {/* row headers (actor names) */}
+            {visibleRows.map(r => (
+              <g key={r.id}
+                opacity={hl && hl.type === 'row' && hl.id !== r.id ? 0.18 : 1}
+                className="cursor-pointer"
+                onClick={() => setFocus(r.id)}
+                onMouseEnter={() => setHover({ type: 'row', id: r.id })}
+                onMouseLeave={() => setHover(null)}
+              >
+                <rect x={0} y={HEAD + (rowIndex[r.id] || 0) * CELL} width={GUTTER - 6} height={CELL} fill="transparent" />
+                <text x={GUTTER - 10} y={HEAD + (rowIndex[r.id] || 0) * CELL + CELL / 2 + 3} textAnchor="end" className="fill-fg text-[10px]">{r.label.length > 26 ? r.label.slice(0, 26) + '…' : r.label}</text>
+                <title>{`${r.label} — ${r.deg} techniques`}</title>
+              </g>
+            ))}
           </svg>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border px-4 py-2 text-xs text-muted">
-            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-danger" /> Threat actor ({actors.length})</span>
-            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-attack" /> ATT&CK technique ({techs.filter(t => edges.some(e => e.t === t.id)).length})</span>
-            <span className="ml-auto">Node size = relationship count · scroll to zoom · drag to pan</span>
-          </div>
+        </div>
+      )}
+
+      {!isLoading && !error && cols.length > 0 && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
+          <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm bg-accent" /> Actor uses technique</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-danger" /> Threat actor (row)</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-attack" /> ATT&CK technique (column)</span>
+          <span className="ml-auto">Cell brightness = how many actors use that technique</span>
         </div>
       )}
 

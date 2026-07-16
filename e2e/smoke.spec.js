@@ -13,7 +13,7 @@ const PAGES = [
   ['/exploits', 'Exploit Tracker'],
   ['/exposure', 'Technology Exposure'],
   ['/actors', 'Threat Actors'],
-  ['/graph', 'Attack Graph'],
+  ['/graph', 'Attack Matrix'],
   ['/watchlist', 'Watchlist'],
   ['/resources', 'Resources'],
 ]
@@ -76,11 +76,18 @@ test.describe('Phase C features', () => {
     await expect(page.getByText(/Techniques \(\d+\)/)).toBeVisible({ timeout: 10000 })
   })
 
-  test('Attack Graph renders nodes + top-technique leaderboard', async ({ page }) => {
+  test('Attack Matrix renders as an adjacency grid + top-technique leaderboard', async ({ page }) => {
     await page.goto('/#/graph')
     await expect(page.getByText('Most-targeted techniques')).toBeVisible({ timeout: 15000 })
-    // Scope to the leaderboard card (the SVG node also exposes an accessible name)
+    // Leaderboard card
     await expect(page.getByRole('button', { name: /Ingress Tool Transfer \d+/ })).toBeVisible()
+    // The matrix itself (group role) renders with lit cells (rects)
+    const matrix = page.getByRole('group', { name: /Adjacency matrix/ })
+    await expect(matrix).toBeVisible({ timeout: 15000 })
+    await expect(matrix.locator('rect').first()).toBeVisible()
+    // Clicking a leaderboard technique focuses it and opens the detail panel
+    await page.getByRole('button', { name: /Ingress Tool Transfer \d+/ }).click()
+    await expect(page.getByText(/Used by \d+ threat actors?/)).toBeVisible({ timeout: 10000 })
   })
 
   test('Watchlist persists an added CVE across reload', async ({ page }) => {
@@ -103,7 +110,7 @@ test.describe('Navigation is responsive (no stuck views)', () => {
     // previous screen stays mounted).
     for (const [path, heading] of [
       ['/actors', 'Threat Actors'],
-      ['/graph', 'Attack Graph'],
+      ['/graph', 'Attack Matrix'],
       ['/watchlist', 'Watchlist'],
       ['/', 'KEV Dashboard'],
       ['/exposure', 'Technology Exposure'],

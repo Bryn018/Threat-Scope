@@ -28,7 +28,7 @@ const NAV_ITEMS = [
   { to: '/exploits', icon: Bomb, label: 'Exploit Tracker' },
   { to: '/exposure', icon: Radar, label: 'Tech Exposure' },
   { to: '/actors', icon: Users, label: 'Threat Actors' },
-  { to: '/graph', icon: Share2, label: 'Attack Graph' },
+  { to: '/graph', icon: Share2, label: 'Attack Matrix' },
   { to: '/watchlist', icon: Bell, label: 'Watchlist' },
   { to: '/resources', icon: BookOpen, label: 'Resources' },
 ]
