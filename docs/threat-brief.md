@@ -1,8 +1,13 @@
-# Threat Scope — Daily Intelligence Brief (2026-07-15)
+# Threat Scope — Daily Intelligence Brief (2026-07-16)
 
-**Catalog version:** 2026.07.14  
-**Tracked KEVs:** 1642  
-**New since last brief:** 0
+**Catalog version:** 2026.07.15  
+**Tracked KEVs:** 1644  
+**New since last brief:** 2
+
+## All 2 new KEVs
+
+- CVE-2026-46817 — Oracle E-Business Suite Improper Privilege Management Vulnerability (Oracle)
+- CVE-2023-4346 — KNX Association KNX Protocol Connection Authorization Option 1 Overly Restrictive Account Lockout Mechanism Vulnerability (KNX Association)
 
 ## CISA advisories (10 latest)
 
