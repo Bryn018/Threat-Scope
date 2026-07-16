@@ -79,7 +79,8 @@ test.describe('Phase C features', () => {
   test('Attack Graph renders nodes + top-technique leaderboard', async ({ page }) => {
     await page.goto('/#/graph')
     await expect(page.getByText('Most-targeted techniques')).toBeVisible({ timeout: 15000 })
-    await expect(page.getByRole('button', { name: /Ingress Tool Transfer/ })).toBeVisible()
+    // Scope to the leaderboard card (the SVG node also exposes an accessible name)
+    await expect(page.getByRole('button', { name: /Ingress Tool Transfer \d+/ })).toBeVisible()
   })
 
   test('Watchlist persists an added CVE across reload', async ({ page }) => {
