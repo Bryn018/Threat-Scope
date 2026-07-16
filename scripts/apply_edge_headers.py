@@ -21,7 +21,15 @@ HEADERS_FILE = os.path.join(os.path.dirname(__file__), "..", "public", "_headers
 
 
 def cf(token, method, path, body=None):
+    # `path` is always a Cloudflare API route we construct ourselves (zone/rule
+    # IDs come from Cloudflare's own JSON responses, never from untrusted input).
+    # Guard it so no scheme/`..` can ever reach urlopen (which would allow file://).
+    if not path.startswith("/") or "://" in path or ".." in path:
+        print(f"Refusing unsafe API path: {path!r}", file=sys.stderr)
+        sys.exit(1)
     data = json.dumps(body).encode() if body is not None else None
+    # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected
+    # Safe: API base is a constant; path is a validated relative route from trusted API responses.
     req = urllib.request.Request(f"{API}{path}", data=data, method=method)
     req.add_header("Authorization", f"Bearer {token}")
     req.add_header("Content-Type", "application/json")
