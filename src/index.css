@@ -43,6 +43,10 @@
   --color-high: var(--high);
   --color-high-soft: var(--high-soft);
   --color-high-ink: var(--high-ink);
+
+  --color-attack: var(--attack);
+  --color-attack-soft: var(--attack-soft);
+  --color-attack-ink: var(--attack-ink);
 }
 
 /* ---------- LIGHT (default) ---------- */
@@ -53,8 +57,8 @@
   --border: #e2e8f0;        /* slate-200 */
   --border-strong: #cbd5e1; /* slate-300 */
   --fg: #0f172a;           /* slate-900 */
-  --muted: #475569;        /* slate-600 */
-  --faint: #64748b;        /* slate-500 */
+  --muted: #475569;       /* slate-600 (AA on white) */
+  --faint: #64748b;       /* slate-500 (AA on white) */
   --overlay: rgba(15, 23, 42, 0.45);
 
   --accent: #0369a1;       /* sky-700 (AA: white-on-sky-700 5.2:1; sky-700 on white 6.5:1) */
@@ -81,19 +85,23 @@
   --high-soft: #ffedd5;    /* orange-100 */
   --high-ink: #9a3412;     /* orange-800 — text on high-soft */
 
+  --attack: #4338ca;       /* indigo-700 — ATT&CK accent */
+  --attack-soft: #e0e7ff;  /* indigo-100 */
+  --attack-ink: #3730a3;   /* indigo-800 — text on attack-soft */
+
   color-scheme: light;
 }
 
 /* ---------- DARK ---------- */
 .dark {
-  --bg: #020617;           /* slate-950 */
-  --surface: #0b1220;      /* slate-900-ish */
-  --surface-2: #0f172a;    /* slate-900 */
-  --border: #1e293b;       /* slate-800 */
-  --border-strong: #334155;/* slate-700 */
-  --fg: #f1f5f9;           /* slate-100 */
-  --muted: #94a3b8;        /* slate-400 */
-  --faint: #64748b;        /* slate-500 */
+  --bg: #020617;
+  --surface: #0b1220;
+  --surface-2: #111a2e;
+  --border: #1e293b;        /* slate-800 */
+  --border-strong: #334155; /* slate-700 */
+  --fg: #f8fafc;            /* slate-50 */
+  --muted: #cbd5e1;         /* slate-300 (AA on dark surface) */
+  --faint: #94a3b8;         /* slate-400 (AA on dark surface) */
   --overlay: rgba(0, 0, 0, 0.6);
 
   --accent: #38bdf8;       /* sky-400 */
@@ -119,6 +127,10 @@
   --high: #fdba74;         /* orange-300 — "High" severity (dark) */
   --high-soft: rgba(251, 146, 60, 0.14);
   --high-ink: #fdba74;     /* orange-300 */
+
+  --attack: #a5b4fc;       /* indigo-300 — ATT&CK accent (dark) */
+  --attack-soft: rgba(99, 102, 241, 0.16);
+  --attack-ink: #c7d2fe;   /* indigo-200 */
 
   color-scheme: dark;
 }

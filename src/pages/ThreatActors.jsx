@@ -31,7 +31,7 @@ function ActorCard({ actor, onSelect, active }) {
         <p className="text-xs text-muted line-clamp-1">{actor.aliases.slice(1).join(', ')}</p>
       )}
       <div className="mt-1 flex flex-wrap gap-1.5">
-        <span className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">
+        <span className="inline-flex items-center gap-1 rounded-full bg-attack-soft px-2 py-0.5 text-xs text-attack-ink">
           <Crosshair className="h-3 w-3" /> {actor.techniques.length}
         </span>
         <span className="inline-flex items-center gap-1 rounded-full bg-danger-soft px-2 py-0.5 text-xs text-danger">
@@ -107,7 +107,7 @@ export default function ThreatActors() {
         </div>
         <div className="flex flex-wrap gap-2">
           <StatPill icon={Users} label="Tracked actors" value={actors.length} tone="text-accent" />
-          <StatPill icon={Crosshair} label="w/ techniques" value={actors.filter(a => a.techniques.length).length} tone="text-indigo-700" />
+          <StatPill icon={Crosshair} label="w/ techniques" value={actors.filter(a => a.techniques.length).length} tone="text-attack-ink" />
           <StatPill icon={Skull} label="w/ malware" value={actors.filter(a => a.malware.length).length} tone="text-danger" />
         </div>
       </header>
@@ -167,7 +167,7 @@ export default function ThreatActors() {
             <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted">{selected.description}</p>
           )}
           <div className="grid gap-4 md:grid-cols-3">
-            <Section icon={Crosshair} title="Techniques" tone="text-indigo-700" items={selected.techniques} empty="No mapped techniques" href={(t) => `https://attack.mitre.org/techniques/${t}/`} />
+            <Section icon={Crosshair} title="Techniques" tone="text-attack-ink" items={selected.techniques} empty="No mapped techniques" href={(t) => `https://attack.mitre.org/techniques/${t}/`} />
             <Section icon={Bug} title="Malware" tone="text-danger" items={selected.malware} empty="No known malware" />
             <Section icon={Wrench} title="Tools" tone="text-ok" items={selected.tools} empty="No known tools" />
           </div>

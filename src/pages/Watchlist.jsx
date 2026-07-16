@@ -156,7 +156,7 @@ export default function Watchlist() {
             <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface-2/40">
               {enriched.map(e => (
                 <li key={e.id} className="flex items-center gap-3 px-4 py-3">
-                  <span className={`rounded-md px-2 py-0.5 text-xs ${e.kind === 'cve' ? 'bg-danger-soft text-danger-ink' : 'bg-indigo-100 text-indigo-700'}`}>{e.kind === 'cve' ? 'CVE' : 'ACTOR'}</span>
+                  <span className={`rounded-md px-2 py-0.5 text-xs ${e.kind === 'cve' ? 'bg-danger-soft text-danger-ink' : 'bg-attack-soft text-attack-ink'}`}>{e.kind === 'cve' ? 'CVE' : 'ACTOR'}</span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-fg">{e.label}</span>

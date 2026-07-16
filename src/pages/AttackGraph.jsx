@@ -181,7 +181,7 @@ export default function AttackGraph() {
             <button key={t.id} onClick={() => setFocus(t.id)}
               className="flex items-center justify-between rounded-xl border border-border bg-surface-2/40 px-3 py-2 text-left hover:border-border-strong hover:bg-surface-2/70">
               <span className="truncate text-sm text-fg">{t.label}</span>
-              <span className="ml-2 shrink-0 rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">{t.deg}</span>
+              <span className="ml-2 shrink-0 rounded-full bg-attack-soft px-2 py-0.5 text-xs text-attack-ink">{t.deg}</span>
             </button>
           ))}
         </div>
@@ -214,7 +214,7 @@ export default function AttackGraph() {
           </svg>
           <div className="flex items-center gap-4 border-t border-border px-4 py-2 text-xs text-muted">
             <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-danger" /> Threat actor ({actors.length})</span>
-            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-indigo-400" /> ATT&CK technique ({techs.filter(t => edges.some(e => e.t === t.id)).length})</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-attack" /> ATT&CK technique ({techs.filter(t => edges.some(e => e.t === t.id)).length})</span>
             <span className="ml-auto">Node size = relationship count</span>
           </div>
         </div>
