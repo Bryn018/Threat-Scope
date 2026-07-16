@@ -51,11 +51,11 @@ export default function ThreatModal({ vulnerability, onClose, techniqueMap = {} 
                 {techniques.map((t) => (
                   <span
                     key={t.id}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-violet-500/40 bg-violet-500/10 px-2 py-1 text-xs text-violet-200"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-attack bg-attack-soft px-2 py-1 text-xs text-attack-ink"
                   >
                     <span className="font-mono font-semibold">{t.id}</span>
-                    <span className="text-violet-300/80">{t.name}</span>
-                    <span className="text-violet-400/60">({t.tactic})</span>
+                    <span className="text-attack-ink">{t.name}</span>
+                    <span className="text-attack-ink">({t.tactic})</span>
                   </span>
                 ))}
               </dd>

@@ -39,7 +39,7 @@ const RESOURCE_CATEGORIES = [
   {
     title: 'MITRE ATT&CK & Frameworks',
     icon: GraduationCap,
-    color: 'text-violet-400',
+    color: 'text-attack-ink',
     items: [
       { name: 'MITRE ATT&CK', url: 'https://attack.mitre.org', desc: 'Adversary tactics and techniques' },
       { name: 'MITRE D3FEND', url: 'https://d3fend.mitre.org', desc: 'Defensive countermeasures' },

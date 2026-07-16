@@ -47,6 +47,14 @@
   --color-attack: var(--attack);
   --color-attack-soft: var(--attack-soft);
   --color-attack-ink: var(--attack-ink);
+
+  --color-violet: var(--violet);
+  --color-violet-soft: var(--violet-soft);
+  --color-violet-ink: var(--violet-ink);
+
+  --color-pink: var(--pink);
+  --color-pink-soft: var(--pink-soft);
+  --color-pink-ink: var(--pink-ink);
 }
 
 /* ---------- LIGHT (default) ---------- */
@@ -88,6 +96,14 @@
   --attack: #4338ca;       /* indigo-700 — ATT&CK accent */
   --attack-soft: #e0e7ff;  /* indigo-100 */
   --attack-ink: #3730a3;   /* indigo-800 — text on attack-soft */
+
+  --violet: #6d28d9;       /* violet-700 — DoS/exploit category */
+  --violet-soft: #f3e8ff;  /* violet-100 */
+  --violet-ink: #5b21b6;   /* violet-800 — text on violet-soft */
+
+  --pink: #be185d;         /* pink-700 — Shellcode */
+  --pink-soft: #fce7f3;    /* pink-100 */
+  --pink-ink: #9d174d;     /* pink-800 — text on pink-soft */
 
   color-scheme: light;
 }
@@ -131,6 +147,14 @@
   --attack: #a5b4fc;       /* indigo-300 — ATT&CK accent (dark) */
   --attack-soft: rgba(99, 102, 241, 0.16);
   --attack-ink: #c7d2fe;   /* indigo-200 */
+
+  --violet: #c4b5fd;       /* violet-300 (dark) */
+  --violet-soft: rgba(167, 139, 250, 0.16);
+  --violet-ink: #ddd6fe;   /* violet-200 */
+
+  --pink: #f9a8d4;         /* pink-300 (dark) */
+  --pink-soft: rgba(244, 114, 182, 0.16);
+  --pink-ink: #fbcfe8;     /* pink-200 */
 
   color-scheme: dark;
 }

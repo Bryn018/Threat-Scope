@@ -253,7 +253,7 @@ export default function AttackMatrix() {
                 <h4 className="text-xs uppercase tracking-wider text-muted">Tactics</h4>
                 <div className="mt-1 flex flex-wrap gap-2">
                   {selectedTechnique.tactics.map((t) => (
-                    <span key={t} className="rounded-full border border-violet-500/40 bg-violet-500/10 px-2.5 py-0.5 text-xs text-violet-300">
+                    <span key={t} className="rounded-full border border-attack bg-attack-soft px-2.5 py-0.5 text-xs text-attack-ink">
                       {TACTIC_NAMES[t] || t}
                     </span>
                   ))}

@@ -16,14 +16,14 @@ function buildNvdUrl(params) {
 function severityColor(score) {
   if (score >= 9) return 'text-danger'
   if (score >= 7) return 'text-high'
-  if (score >= 4) return 'text-yellow-400'
+  if (score >= 4) return 'text-warning-ink'
   return 'text-ok'
 }
 
 function severityBg(score) {
   if (score >= 9) return 'border-red-500/40 bg-danger-soft'
   if (score >= 7) return 'border-high-soft bg-high-soft'
-  if (score >= 4) return 'border-yellow-500/40 bg-yellow-500/10'
+  if (score >= 4) return 'border-warning bg-warning-soft'
   return 'border-green-500/40 bg-ok-soft'
 }
 
