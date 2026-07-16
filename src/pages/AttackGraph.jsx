@@ -16,8 +16,9 @@ function useForceGraph(nodes, edges, { width = 960, height = 600 } = {}) {
     const W = width, H = height
     const p = {}
     nodes.forEach((n, i) => {
+      const baseX = n.type === 'group' ? W * 0.26 : W * 0.74
       const a = (i / nodes.length) * Math.PI * 2
-      p[n.id] = { x: W / 2 + Math.cos(a) * 220 + (Math.random() - 0.5) * 30, y: H / 2 + Math.sin(a) * 220 + (Math.random() - 0.5) * 30, vx: 0, vy: 0 }
+      p[n.id] = { x: baseX + (Math.random() - 0.5) * 60, y: H / 2 + Math.sin(a) * 230 + (Math.random() - 0.5) * 30, vx: 0, vy: 0 }
     })
     const adj = {}
     edges.forEach(e => { (adj[e.s] = adj[e.s] || []).push(e.t); (adj[e.t] = adj[e.t] || []).push(e.s) })
@@ -38,6 +39,7 @@ function useForceGraph(nodes, edges, { width = 960, height = 600 } = {}) {
           disp[nodes[j].id].x -= fx; disp[nodes[j].id].y -= fy
         }
       }
+      // attraction along edges
       edges.forEach(e => {
         const a = p[e.s], b = p[e.t]
         let dx = a.x - b.x, dy = a.y - b.y
@@ -47,10 +49,13 @@ function useForceGraph(nodes, edges, { width = 960, height = 600 } = {}) {
         disp[e.s].x -= fx; disp[e.s].y -= fy
         disp[e.t].x += fx; disp[e.t].y += fy
       })
+      // gravity + bipartite x-bias: actors left, techniques right (separates the two
+      // classes into vertical bands, which slashes edge crossings — the #1 readability killer)
       nodes.forEach(n => {
         const c = p[n.id]
-        disp[n.id].x += (W / 2 - c.x) * 0.01
-        disp[n.id].y += (H / 2 - c.y) * 0.01
+        const targetX = n.type === 'group' ? W * 0.26 : W * 0.74
+        disp[n.id].x += (targetX - c.x) * 0.035
+        disp[n.id].y += (H / 2 - c.y) * 0.012
       })
       const t = alpha
       nodes.forEach(n => {
@@ -74,6 +79,7 @@ function useForceGraph(nodes, edges, { width = 960, height = 600 } = {}) {
 }
 
 export default function AttackGraph() {
+  const W = 960, H = 600
   const [actors, setActors] = useState([])
   const [techs, setTechs] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -131,7 +137,7 @@ export default function AttackGraph() {
     return { nodes, edges, topTech, techById, actorById }
   }, [actors, techs])
 
-  const pos = useForceGraph(nodes, edges)
+  const pos = useForceGraph(nodes, edges, { width: W, height: H })
 
   const q = query.trim().toLowerCase()
   const focusNode = focus ? nodes.find(n => n.id === focus) : null
@@ -196,7 +202,7 @@ export default function AttackGraph() {
           <h1 className="flex items-center gap-2 text-2xl font-bold text-fg"><Share2 className="h-6 w-6 text-accent" /> Attack Graph</h1>
           <p className="text-sm text-muted">
             Real ATT&CK relationships — {nodes.length ? nodes.length : '…'} nodes, {edges.length} actor→technique links.
-            Scroll to zoom, drag to pan, click any node to inspect it.
+            Actors sit on the left, techniques on the right. Scroll to zoom, drag to pan, click a node (or empty space to deselect) to inspect.
           </p>
         </div>
       </header>
@@ -265,18 +271,31 @@ export default function AttackGraph() {
             onPointerMove={onBgMove}
             onPointerUp={endPan}
             onPointerLeave={endPan}
+            onClick={() => setFocus(null)}
           >
             <g transform={`translate(${view.x},${view.y}) scale(${view.k})`}>
+              {/* Bipartite zone bands + column headers to make the two sides legible */}
+              <rect x={0} y={0} width={W * 0.5} height={H} fill="var(--surface-2)" opacity={0.25} rx={0} />
+              <rect x={W * 0.5} y={0} width={W * 0.5} height={H} fill="var(--surface)" opacity={0.25} rx={0} />
+              <text x={W * 0.26} y={20} textAnchor="middle" className="fill-muted text-[11px] font-semibold uppercase tracking-wider">Threat Actors</text>
+              <text x={W * 0.74} y={20} textAnchor="middle" className="fill-muted text-[11px] font-semibold uppercase tracking-wider">ATT&CK Techniques</text>
               {edges.map((e, i) => {
                 const a = pos[e.s], b = pos[e.t]
                 if (!a || !b) return null
                 const connected = focus && (e.s === focus || e.t === focus)
                 const dim = isDim(e.s) || isDim(e.t)
+                // gentle quadratic curve: control point offset perpendicular to the edge
+                const mx = (a.x + b.x) / 2
+                const my = (a.y + b.y) / 2
+                const dx = b.x - a.x, dy = b.y - a.y
+                const cx = mx - dy * 0.12
+                const cy = my + dx * 0.12
                 return (
-                  <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                  <path key={i} d={`M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}`}
+                    fill="none"
                     stroke={connected ? 'var(--accent)' : 'var(--border-strong)'}
                     strokeWidth={connected ? 1.4 : 0.7}
-                    opacity={dim ? 0.08 : (connected ? 0.9 : 0.5)} />
+                    opacity={dim ? 0.08 : (connected ? 0.9 : 0.45)} />
                 )
               })}
               {nodes.map(n => {
@@ -286,7 +305,9 @@ export default function AttackGraph() {
                 const r = 4 + Math.min(11, Math.sqrt(n.deg) * 1.5)
                 const active = focus === n.id || hover === n.id
                 const fill = n.type === 'group' ? 'var(--danger)' : 'var(--attack)'
-                const showLabel = active || (showLabels && n.deg > 4) || (!focus && !q && n.deg > 14)
+                // Level-of-Detail labels: zoom in to reveal more names; high-degree nodes always get one.
+                const lodThreshold = view.k > 1.8 ? 0 : view.k > 1.1 ? 8 : 14
+                const showLabel = active || showLabels || (!focus && !q && n.deg > lodThreshold)
                 return (
                   <g key={n.id} transform={`translate(${p.x},${p.y})`}
                     className="cursor-pointer"
