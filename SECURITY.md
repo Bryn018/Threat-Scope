@@ -15,7 +15,7 @@ branch (and the live site it builds) receives security updates.
 If you discover a security issue in Threat Scope, **please do not open a public
 GitHub issue.** Instead, report it privately:
 
-- Email the maintainer (see the GitHub repo "About" for the contact) with:
+- Email **security@insights.autos** (Insights Security) with:
   - A description of the issue and its impact
   - Steps to reproduce (or a proof-of-concept)
   - Any suggested remediation
