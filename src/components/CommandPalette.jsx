@@ -67,6 +67,8 @@ export default function CommandPalette({ open, onOpenChange }) {
     navigate(item.to)
   }
 
+  if (!open) return null
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center bg-overlay/60 px-4 pt-[12vh]"
