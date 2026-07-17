@@ -153,7 +153,7 @@ test.describe('Navigation is responsive (no stuck views)', () => {
 
   test('unified search finds a CVE and deep-links to a filtered KEV page', async ({ page }) => {
     await page.goto('/#/')
-    await page.keyboard.press('Control+k')
+    await page.getByRole('button', { name: /Quick nav|Search/ }).first().click()
     const input = page.getByPlaceholder(/Search CVEs, actors, techniques/)
     await expect(input).toBeVisible()
     await input.fill('CVE-2021-44228')
@@ -167,7 +167,7 @@ test.describe('Navigation is responsive (no stuck views)', () => {
 
   test('unified search finds a threat actor', async ({ page }) => {
     await page.goto('/#/')
-    await page.keyboard.press('Control+k')
+    await page.getByRole('button', { name: /Quick nav|Search/ }).first().click()
     const input = page.getByPlaceholder(/Search CVEs, actors, techniques/)
     await input.fill('Lazarus')
     await expect(page.getByText('Lazarus').first()).toBeVisible()
