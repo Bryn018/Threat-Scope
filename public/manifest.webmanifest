@@ -1,0 +1,17 @@
+{
+  "name": "Threat Scope",
+  "short_name": "ThreatScope",
+  "description": "SOC dashboard for CISA KEV, CVE, MITRE ATT&CK, threat intel, IOC lookup and exploit tracking.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

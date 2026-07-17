@@ -1,0 +1,44 @@
+name: Data health check
+
+# Guards data freshness. If any mirrored feed in /data is missing, empty, or
+# older than its expected cadence, the workflow FAILS (visible in the Actions
+# tab and on the repo's status) so the owner is alerted that a sync stalled.
+
+on:
+  schedule:
+    - cron: '37 */2 * * *'   # every 2 hours
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate feed freshness
+        run: |
+          set -euo pipefail
+          MAX_AGE_HOURS=26   # longest expected gap is the hourly KEV run + slack
+          now=$(date +%s)
+          fail=0
+          for f in public/data/*.json; do
+            [ -s "$f" ] || { echo "::error::Missing or empty: $f"; fail=1; continue; }
+            # minimum plausible size per dataset
+            min=50
+            sz=$(wc -c < "$f")
+            if [ "$sz" -lt "$min" ]; then echo "::error::Suspiciously small: $f ($sz bytes)"; fail=1; continue; fi
+            mtime=$(git log -1 --format=%ct -- "$f" 2>/dev/null || echo "$now")
+            age_h=$(( (now - mtime) / 3600 ))
+            echo "OK  $f  (${sz} bytes, ~${age_h}h old)"
+            if [ "$age_h" -gt "$MAX_AGE_HOURS" ]; then echo "::error::Stale: $f is ${age_h}h old"; fail=1; fi
+          done
+          # sanity: KEV catalog must contain real CVEs
+          if [ -f public/data/cisa-kev.json ]; then
+            n=$(python3 -c "import json;print(len(json.load(open('public/data/cisa-kev.json')).get('vulnerabilities',[])))")
+            if [ "$n" -lt 500 ]; then echo "::error::KEV catalog has only $n CVEs"; fail=1; fi
+          fi
+          exit $fail

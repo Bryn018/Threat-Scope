@@ -1,0 +1,212 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Threat Scope — design tokens (light + dark)
+   Tailwind v4 CSS-first config. Semantic tokens are driven by
+   CSS custom properties so a single `.dark` class on <html>
+   flips the entire app. Base = LIGHT (accessible, high-contrast).
+   ============================================================ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-overlay: var(--overlay);
+
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-border: var(--accent-border);
+  --color-accent-ink: var(--accent-ink);
+
+  --color-danger: var(--danger);
+  --color-danger-fg: var(--danger-fg);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-ink: var(--danger-ink);
+
+  --color-warning: var(--warning);
+  --color-warning-fg: var(--warning-fg);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-ink: var(--warning-ink);
+
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-ok-ink: var(--ok-ink);
+
+  --color-high: var(--high);
+  --color-high-soft: var(--high-soft);
+  --color-high-ink: var(--high-ink);
+
+  --color-attack: var(--attack);
+  --color-attack-soft: var(--attack-soft);
+  --color-attack-ink: var(--attack-ink);
+
+  --color-violet: var(--violet);
+  --color-violet-soft: var(--violet-soft);
+  --color-violet-ink: var(--violet-ink);
+
+  --color-pink: var(--pink);
+  --color-pink-soft: var(--pink-soft);
+  --color-pink-ink: var(--pink-ink);
+}
+
+/* ---------- LIGHT (default) ---------- */
+:root {
+  --bg: #f1f5f9;            /* slate-100 */
+  --surface: #ffffff;
+  --surface-2: #f8fafc;    /* slate-50 */
+  --border: #e2e8f0;        /* slate-200 */
+  --border-strong: #cbd5e1; /* slate-300 */
+  --fg: #0f172a;           /* slate-900 */
+  --muted: #475569;       /* slate-600 (AA on white) */
+  --faint: #64748b;       /* slate-500 (AA on white) */
+  --overlay: rgba(15, 23, 42, 0.45);
+
+  --accent: #0369a1;       /* sky-700 (AA: white-on-sky-700 5.2:1; sky-700 on white 6.5:1) */
+  --accent-fg: #ffffff;
+  --accent-soft: #e0f2fe;  /* sky-100 */
+  --accent-border: #7dd3fc;/* sky-300 */
+  --accent-ink: #075985;   /* sky-800 — text on accent-soft */
+
+  --danger: #be123c;       /* rose-700 */
+  --danger-fg: #ffffff;
+  --danger-soft: #ffe4e6;  /* rose-100 */
+  --danger-ink: #9f1239;   /* rose-800 — text on danger-soft */
+
+  --warning: #b45309;      /* amber-700 */
+  --warning-fg: #ffffff;
+  --warning-soft: #fef3c7; /* amber-100 */
+  --warning-ink: #92400e;  /* amber-800 — text on warning-soft */
+
+  --ok: #15803d;           /* green-700 */
+  --ok-soft: #dcfce7;      /* green-100 */
+  --ok-ink: #166534;       /* green-800 — text on ok-soft */
+
+  --high: #c2410c;         /* orange-700 — "High" severity */
+  --high-soft: #ffedd5;    /* orange-100 */
+  --high-ink: #9a3412;     /* orange-800 — text on high-soft */
+
+  --attack: #4338ca;       /* indigo-700 — ATT&CK accent */
+  --attack-soft: #e0e7ff;  /* indigo-100 */
+  --attack-ink: #3730a3;   /* indigo-800 — text on attack-soft */
+
+  --violet: #6d28d9;       /* violet-700 — DoS/exploit category */
+  --violet-soft: #f3e8ff;  /* violet-100 */
+  --violet-ink: #5b21b6;   /* violet-800 — text on violet-soft */
+
+  --pink: #be185d;         /* pink-700 — Shellcode */
+  --pink-soft: #fce7f3;    /* pink-100 */
+  --pink-ink: #9d174d;     /* pink-800 — text on pink-soft */
+
+  color-scheme: light;
+}
+
+/* ---------- DARK ---------- */
+.dark {
+  --bg: #020617;
+  --surface: #0b1220;
+  --surface-2: #111a2e;
+  --border: #1e293b;        /* slate-800 */
+  --border-strong: #334155; /* slate-700 */
+  --fg: #f8fafc;            /* slate-50 */
+  --muted: #cbd5e1;         /* slate-300 (AA on dark surface) */
+  --faint: #94a3b8;         /* slate-400 (AA on dark surface) */
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  --accent: #38bdf8;       /* sky-400 */
+  --accent-fg: #04141f;
+  --accent-soft: rgba(56, 189, 248, 0.12);
+  --accent-border: rgba(56, 189, 248, 0.35);
+  --accent-ink: #7dd3fc;   /* sky-300 — text on accent-soft (dark) */
+
+  --danger: #fb7185;       /* rose-400 */
+  --danger-fg: #2a0710;
+  --danger-soft: rgba(244, 63, 94, 0.12);
+  --danger-ink: #fda4af;   /* rose-300 */
+
+  --warning: #fbbf24;      /* amber-400 */
+  --warning-fg: #2a1c03;
+  --warning-soft: rgba(251, 191, 36, 0.12);
+  --warning-ink: #fcd34d;  /* amber-300 */
+
+  --ok: #4ade80;           /* green-400 */
+  --ok-soft: rgba(34, 197, 94, 0.14);
+  --ok-ink: #86efac;       /* green-300 */
+
+  --high: #fdba74;         /* orange-300 — "High" severity (dark) */
+  --high-soft: rgba(251, 146, 60, 0.14);
+  --high-ink: #fdba74;     /* orange-300 */
+
+  --attack: #a5b4fc;       /* indigo-300 — ATT&CK accent (dark) */
+  --attack-soft: rgba(99, 102, 241, 0.16);
+  --attack-ink: #c7d2fe;   /* indigo-200 */
+
+  --violet: #c4b5fd;       /* violet-300 (dark) */
+  --violet-soft: rgba(167, 139, 250, 0.16);
+  --violet-ink: #ddd6fe;   /* violet-200 */
+
+  --pink: #f9a8d4;         /* pink-300 (dark) */
+  --pink-soft: rgba(244, 114, 182, 0.16);
+  --pink-ink: #fbcfe8;     /* pink-200 */
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--bg);
+  color: var(--fg);
+  /* Smooth theme transition without hurting perceived performance */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Visible, consistent focus ring for keyboard users (a11y) */
+:where(a, button, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Calmer scrollbars that follow the theme */
+* {
+  scrollbar-color: var(--border-strong) transparent;
+  scrollbar-width: thin;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

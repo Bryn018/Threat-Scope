@@ -1,0 +1,107 @@
+import { useState, useEffect, useCallback, useRef } from 'react'
+
+// Module-level cache so repeated navigations don't refetch identical data.
+const CACHE = new Map()
+const CACHE_TTL = 5 * 60 * 1000
+
+export function useFetch(url, options = {}) {
+  const {
+    ttl = CACHE_TTL,
+    enabled = true,
+    transform = (data) => data,
+    initialData = null,
+  } = options
+
+  // Keep latest transform/url in refs so the stable execute() callback can
+  // read fresh values without being recreated (avoids refetch loops).
+  const transformRef = useRef(transform)
+  const urlRef = useRef(url)
+  useEffect(() => {
+    transformRef.current = transform
+    urlRef.current = url
+  })
+
+  const [data, setData] = useState(() => {
+    const hit = url ? CACHE.get(url) : undefined
+    return hit && Date.now() - hit.timestamp < ttl ? hit.data : initialData
+  })
+  const [isLoading, setIsLoading] = useState(() => {
+    const hit = url ? CACHE.get(url) : undefined
+    return !url || !hit || Date.now() - hit.timestamp >= ttl
+  })
+  const [error, setError] = useState(null)
+  const [lastUpdated, setLastUpdated] = useState(() => {
+    const hit = url ? CACHE.get(url) : undefined
+    return hit ? new Date(hit.timestamp) : null
+  })
+
+  const abortRef = useRef(null)
+
+  const execute = useCallback(
+    async (overrideUrl) => {
+      const fetchUrl = overrideUrl || urlRef.current
+      if (!fetchUrl) return
+
+      const hit = CACHE.get(fetchUrl)
+      const cached = hit && Date.now() - hit.timestamp < ttl ? hit.data : undefined
+      if (cached !== undefined) {
+        setData(cached)
+        setLastUpdated(hit ? new Date(hit.timestamp) : null)
+        setIsLoading(false)
+        setError(null)
+        return
+      }
+
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
+
+      setIsLoading(true)
+      setError(null)
+      try {
+        const res = await fetch(fetchUrl, { signal: controller.signal })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const raw = await res.json()
+        const transformed = transformRef.current(raw)
+        CACHE.set(fetchUrl, { data: transformed, timestamp: Date.now() })
+        // Only commit if this request wasn't aborted (avoids stale overwrites).
+        if (!controller.signal.aborted) {
+          setData(transformed)
+          setLastUpdated(new Date())
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setError(err.message)
+          const stale = CACHE.get(fetchUrl)
+          if (stale) {
+            setData(stale.data)
+            setLastUpdated(new Date(stale.timestamp))
+          }
+        }
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false)
+      }
+    },
+    // Deliberately omit `transform`/`ttl` from deps — they're read via refs,
+    // so this callback stays stable and never triggers a refetch loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ttl],
+  )
+
+  useEffect(() => {
+    if (!enabled || !url) return
+    execute()
+    return () => abortRef.current?.abort()
+  }, [url, enabled, execute])
+
+  const refresh = useCallback(() => {
+    if (urlRef.current) CACHE.delete(urlRef.current)
+    return execute(urlRef.current)
+  }, [execute])
+
+  return { data, isLoading, error, lastUpdated, refresh }
+}
+
+export function clearCache() {
+  CACHE.clear()
+}

@@ -1,0 +1,112 @@
+import { Search } from 'lucide-react'
+
+const SEVERITY_OPTIONS = ['Known', 'Expected', 'No']
+const EPSS_OPTIONS = [
+  { label: 'EPSS Critical', value: 'critical' },
+  { label: 'EPSS High', value: 'high' },
+  { label: 'EPSS Medium', value: 'medium' },
+  { label: 'EPSS Low', value: 'low' },
+]
+const WINDOW_OPTIONS = [
+  { label: 'last 24h', value: '1' },
+  { label: 'last 7d', value: '7' },
+  { label: 'last 30d', value: '30' },
+  { label: 'last 90d', value: '90' },
+]
+
+export default function Filters({ value, onChange, severity, onSeverityChange, vendor, onVendorChange, sortOrder, onSortOrderChange, vendors, windowDays, onWindowChange, cwe, onCweChange, cwes, epss, onEpssChange }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-md">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted" />
+          <input
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            placeholder="Search vulnerabilities (CVE, vendor, note)"
+            className="w-full rounded-xl border border-border bg-surface-2/60 px-9 py-2.5 text-sm text-fg placeholder:text-muted focus:border-border/40 focus:outline-none"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={sortOrder}
+            onChange={(event) => onSortOrderChange(event.target.value)}
+            aria-label="Sort order"
+            className="rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-xs text-fg focus:border-border/40 focus:outline-none"
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="severity">Highest severity first</option>
+            <option value="epss">Highest EPSS first</option>
+          </select>
+          <select
+            value={vendor}
+            onChange={(event) => onVendorChange(event.target.value)}
+            aria-label="Filter by vendor"
+            className="rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-xs text-fg focus:border-border/40 focus:outline-none"
+          >
+            <option value="">All vendors</option>
+            {(vendors || []).map((entry) => (
+              <option key={entry.name} value={entry.name}>{entry.name}</option>
+            ))}
+          </select>
+          {Array.isArray(cwes) && cwes.length > 0 && (
+            <select
+              value={cwe ?? ''}
+              onChange={(event) => onCweChange(event.target.value)}
+              aria-label="Filter by weakness (CWE)"
+              className="rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-xs text-fg focus:border-border/40 focus:outline-none"
+            >
+              <option value="">All weaknesses</option>
+              {cwes.map((entry) => (
+                <option key={entry.name} value={entry.name}>{entry.name}</option>
+              ))}
+            </select>
+          )}
+          <select
+            value={epss ?? ''}
+            onChange={(event) => onEpssChange(event.target.value)}
+            aria-label="Filter by EPSS band"
+            className="rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-xs text-fg focus:border-border/40 focus:outline-none"
+          >
+            <option value="">All EPSS bands</option>
+            {EPSS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+          <select
+            value={windowDays ?? ''}
+            onChange={(event) => {
+              const next = event.target.value
+              onWindowChange(next ? Number(next) : undefined)
+            }}
+            aria-label="Filter by date added"
+            className="rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-xs text-fg focus:border-border/40 focus:outline-none"
+          >
+            <option value="">All time</option>
+            {WINDOW_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>Added: {option.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {SEVERITY_OPTIONS.map((option) => {
+          const active = severity === option
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onSeverityChange(active ? '' : option)}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                active ? 'border-border/70 bg-surface-2/10 text-fg' : 'border-border bg-surface-2/40 text-muted hover:border-border/40'
+              }`}
+            >
+              {option === 'Known' ? 'Ransomware known' : option === 'Expected' ? 'Faster action' : 'Standard'}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

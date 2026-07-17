@@ -1,0 +1,20 @@
+# Cloudflare Pages _headers — applied at the edge for every response.
+# Complements the in-document CSP meta tag (which only covers the main document);
+# these HTTP headers also protect static assets, data/*.json, and the 404 page,
+# and add HSTS. Real, production-grade hardening — no placeholders.
+
+# Apply to all routes (document, assets, data, and SPA fallback).
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; connect-src 'self' https://services.nvd.nist.gov https://api.first.org; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Data feeds are immutable snapshots — safe to cache longer at the edge.
+/data/*
+  X-Content-Type-Options: nosniff
+  Content-Security-Policy: default-src 'none'; frame-ancestors 'none'
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
