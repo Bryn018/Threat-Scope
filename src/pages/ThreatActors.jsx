@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Users, Search, Crosshair, Bug, Wrench, ExternalLink, ArrowLeft, ShieldHalf, Skull } from 'lucide-react'
 
 const ACTORS_PATH = '/data/attack-actors.json'
@@ -50,6 +51,16 @@ export default function ThreatActors() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  useEffect(() => {
+    const q = searchParams.get('q')
+    if (q != null) setQuery(q)
+  }, [searchParams])
+  const onQueryChange = (v) => {
+    setQuery(v)
+    if (v) setSearchParams((p) => { p.set('q', v); return p }, { replace: true })
+    else setSearchParams((p) => { p.delete('q'); return p }, { replace: true })
+  }
   const [sortKey, setSortKey] = useState('techniques')
   const [selected, setSelected] = useState(null)
   const [lastUpdated, setLastUpdated] = useState(null)
@@ -122,7 +133,7 @@ export default function ThreatActors() {
             <input
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => onQueryChange(e.target.value)}
               placeholder="Search name, alias, technique (T####), malware or tool…"
               aria-label="Search threat actors"
               className="w-full rounded-xl border border-border bg-surface-2/60 py-2 pl-9 pr-3 text-sm text-fg placeholder-slate-500 focus:border-accent focus:outline-none"

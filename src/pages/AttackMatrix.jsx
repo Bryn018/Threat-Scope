@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Search, ExternalLink, Crosshair } from 'lucide-react'
 import { useFetch } from '../hooks/useFetch'
 
@@ -43,6 +44,16 @@ const TACTIC_NAMES = {
 
 export default function AttackMatrix() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  useEffect(() => {
+    const q = searchParams.get('q')
+    if (q != null) setSearchTerm(q)
+  }, [searchParams])
+  const onSearchChange = (v) => {
+    setSearchTerm(v)
+    if (v) setSearchParams((p) => { p.set('q', v); return p }, { replace: true })
+    else setSearchParams((p) => { p.delete('q'); return p }, { replace: true })
+  }
   const [selectedTechnique, setSelectedTechnique] = useState(null)
   const [selectedTactic, setSelectedTactic] = useState('')
 
@@ -149,7 +160,7 @@ export default function AttackMatrix() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               <input
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => onSearchChange(e.target.value)}
                 placeholder="Search techniques by ID, name, or keyword..."
                 className="w-full rounded-xl border border-border bg-surface-2/60 px-9 py-2.5 text-sm text-fg placeholder:text-muted focus:border-accent focus:outline-none"
               />

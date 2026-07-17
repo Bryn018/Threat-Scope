@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Activity, AlertTriangle, ShieldCheck, ShieldX, Clock, RefreshCw, TrendingUp, Download } from 'lucide-react'
 import KpiCard from '../components/KpiCard'
 import Filters from '../components/Filters'
@@ -41,6 +42,17 @@ function deriveIncompleteStatus(vulnerability) {
 
 export default function KevDashboard() {
   const [query, setQuery] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  // Seed the filter from ?q= (deep links from unified search) and keep URL in sync.
+  useEffect(() => {
+    const q = searchParams.get('q')
+    if (q != null) setQuery(q)
+  }, [searchParams])
+  const onQueryChange = (v) => {
+    setQuery(v)
+    if (v) setSearchParams((p) => { p.set('q', v); return p }, { replace: true })
+    else setSearchParams((p) => { p.delete('q'); return p }, { replace: true })
+  }
   const [selectedThreat, setSelectedThreat] = useState(null)
   const [severity, setSeverity] = useState('')
   const [vendor, setVendor] = useState('')
@@ -276,7 +288,7 @@ export default function KevDashboard() {
         <div className="space-y-6">
           <Filters
             value={query}
-            onChange={setQuery}
+            onChange={onQueryChange}
             severity={severity}
             onSeverityChange={setSeverity}
             vendor={vendor}
