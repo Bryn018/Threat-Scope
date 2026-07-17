@@ -1,13 +1,14 @@
-# Threat Scope — Daily Intelligence Brief (2026-07-16)
+# Threat Scope — Daily Intelligence Brief (2026-07-17)
 
-**Catalog version:** 2026.07.15  
-**Tracked KEVs:** 1644  
-**New since last brief:** 2
+**Catalog version:** 2026.07.16  
+**Tracked KEVs:** 1647  
+**New since last brief:** 3
 
-## All 2 new KEVs
+## All 3 new KEVs
 
-- CVE-2026-46817 — Oracle E-Business Suite Improper Privilege Management Vulnerability (Oracle)
-- CVE-2023-4346 — KNX Association KNX Protocol Connection Authorization Option 1 Overly Restrictive Account Lockout Mechanism Vulnerability (KNX Association)
+- CVE-2026-58644 — Microsoft SharePoint Deserialization of Untrusted Data Vulnerability (Microsoft)
+- CVE-2026-25089 — Fortinet FortiSandbox OS Command Injection Vulnerability (Fortinet)
+- CVE-2026-39808 — Fortinet FortiSandbox OS Command Injection Vulnerability (Fortinet)
 
 ## CISA advisories (10 latest)
 
