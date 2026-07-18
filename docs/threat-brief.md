@@ -1,14 +1,8 @@
-# Threat Scope — Daily Intelligence Brief (2026-07-17)
+# Threat Scope — Daily Intelligence Brief (2026-07-18)
 
 **Catalog version:** 2026.07.16  
 **Tracked KEVs:** 1647  
-**New since last brief:** 3
-
-## All 3 new KEVs
-
-- CVE-2026-58644 — Microsoft SharePoint Deserialization of Untrusted Data Vulnerability (Microsoft)
-- CVE-2026-25089 — Fortinet FortiSandbox OS Command Injection Vulnerability (Fortinet)
-- CVE-2026-39808 — Fortinet FortiSandbox OS Command Injection Vulnerability (Fortinet)
+**New since last brief:** 0
 
 ## CISA advisories (10 latest)
 
