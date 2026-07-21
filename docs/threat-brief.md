@@ -1,4 +1,4 @@
-# Threat Scope — Daily Intelligence Brief (2026-07-20)
+# Threat Scope — Daily Intelligence Brief (2026-07-21)
 
 **Catalog version:** 2026.07.16  
 **Tracked KEVs:** 1647  
