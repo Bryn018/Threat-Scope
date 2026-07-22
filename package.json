@@ -12,13 +12,13 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@sentry/browser": "^10.65.0",
-    "@tailwindcss/vite": "^4.3.2",
-    "lucide-react": "^1.24.0",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "@sentry/browser": "^10.67.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "lucide-react": "^1.25.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.1",
-    "recharts": "^3.9.2",
+    "recharts": "^3.10.0",
     "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
