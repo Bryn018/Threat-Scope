@@ -1,8 +1,19 @@
-# Threat Scope — Daily Intelligence Brief (2026-07-21)
+# Threat Scope — Daily Intelligence Brief (2026-07-22)
 
-**Catalog version:** 2026.07.16  
-**Tracked KEVs:** 1647  
-**New since last brief:** 0
+**Catalog version:** 2026.07.21  
+**Tracked KEVs:** 1651  
+**New since last brief:** 4
+
+## Priority additions (high EPSS / public exploit / ransomware)
+
+- **CVE-2026-0770** — Langflow Inclusion of Functionality from Untrusted Control Sphere Vulnerability (Langflow)  _EPSS 10.4%, public exploit_
+
+## All 4 new KEVs
+
+- CVE-2026-60137 — WordPress Core SQL Injection Vulnerability (WordPress)
+- CVE-2026-63030 — WordPress Core Interpretation Conflict Vulnerability (WordPress)
+- CVE-2026-0770 — Langflow Inclusion of Functionality from Untrusted Control Sphere Vulnerability (Langflow)
+- CVE-2021-27137 — DD-WRT Stack-Based Buffer Overflow Vulnerability (DD-WRT)
 
 ## CISA advisories (10 latest)
 
