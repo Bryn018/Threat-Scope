@@ -1,13 +1,13 @@
 /* eslint-disable react-hooks/preserve-manual-memoization -- data memo intentionally hand-rolled */
 import { useEffect, useMemo, useState } from 'react'
-import { Share2, Search, X, Link2, Filter } from 'lucide-react'
+import { Share2, Search, X, Link2, Filter, BarChart3 } from 'lucide-react'
 
 import { ENDPOINTS } from '../config/api'
 
 const ACTORS_PATH = ENDPOINTS.attackActors
 const TECH_PATH = ENDPOINTS.attackEnterprise
 
-// Canonical ATT&CK enterprise tactic order (lays out the matrix columns left→right).
+// Canonical ATT&CK enterprise tactic order (used for the tactic filter + labels).
 const TACTIC_ORDER = [
   'reconnaissance', 'resource-development', 'initial-access', 'execution',
   'persistence', 'privilege-escalation', 'defense-impairment', 'discovery',
@@ -15,11 +15,11 @@ const TACTIC_ORDER = [
   'impact', 'stealth', 'credential-access',
 ]
 const TACTIC_LABEL = {
-  reconnaissance: 'Recon', 'resource-development': 'Resource Dev', 'initial-access': 'Initial Access',
-  execution: 'Execution', persistence: 'Persistence', 'privilege-escalation': 'Priv. Esc.',
-  'defense-impairment': 'Defense Impair', discovery: 'Discovery', 'lateral-movement': 'Lateral Move',
-  collection: 'Collection', 'command-and-control': 'C2', exfiltration: 'Exfil', impact: 'Impact',
-  stealth: 'Stealth', 'credential-access': 'Credential Access',
+  reconnaissance: 'Reconnaissance', 'resource-development': 'Resource Development', 'initial-access': 'Initial Access',
+  execution: 'Execution', persistence: 'Persistence', 'privilege-escalation': 'Privilege Escalation',
+  'defense-impairment': 'Defense Impairment', discovery: 'Discovery', 'lateral-movement': 'Lateral Movement',
+  collection: 'Collection', 'command-and-control': 'Command and Control', exfiltration: 'Exfiltration',
+  impact: 'Impact', stealth: 'Stealth', 'credential-access': 'Credential Access',
 }
 
 export default function AttackGraph() {
@@ -28,8 +28,8 @@ export default function AttackGraph() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
+  const [tactic, setTactic] = useState('')
   const [focus, setFocus] = useState(null)
-  const [hover, setHover] = useState(null) // { type: 'row' | 'col', id }
 
   useEffect(() => {
     const controller = new AbortController()
@@ -55,53 +55,51 @@ export default function AttackGraph() {
 
   const model = useMemo(() => {
     if (!actors.length || !techs.length) {
-      return { rows: [], cols: [], colGroups: [], edgeSet: new Set(), maxDeg: 1, topTech: [], techById: {}, actorById: {}, techDeg: {} }
+      return { techById: {}, actorById: {}, usage: {}, rows: 0, cols: 0, links: 0 }
     }
     const techById = Object.fromEntries(techs.map(t => [t.id, t]))
     const actorById = Object.fromEntries(actors.map(a => [a.id, a]))
 
-    const actorDeg = {}, techDeg = {}
+    // usage: technique id -> number of actors that use it
+    const usage = {}
+    let links = 0
     actors.forEach(a => a.techniques.forEach(tid => {
-      if (techById[tid]) { actorDeg[a.id] = (actorDeg[a.id] || 0) + 1; techDeg[tid] = (techDeg[tid] || 0) + 1 }
+      if (techById[tid]) { usage[tid] = (usage[tid] || 0) + 1; links++ }
     }))
-    const maxDeg = Math.max(1, ...Object.values(techDeg))
 
-    const rows = actors
-      .filter(a => (actorDeg[a.id] || 0) > 0)
-      .map(a => ({ id: a.id, label: a.name, deg: actorDeg[a.id] || 0 }))
-      .sort((a, b) => b.deg - a.deg)
-
-    // columns: techniques used by >=1 actor, grouped by tactic, sorted by popularity within group
-    const grouped = {}
-    const used = new Set(rows.flatMap(r => actorById[r.id].techniques.filter(t => techById[t])))
-    used.forEach(tid => {
-      const t = techById[tid]
-      const tac = (t.tactics && t.tactics[0]) || 'execution'
-      ;(grouped[tac] = grouped[tac] || []).push({ id: tid, label: t.name, deg: techDeg[tid] || 0 })
-    })
-    const colGroups = TACTIC_ORDER.filter(tc => grouped[tc]).map(tac => ({
-      tac,
-      label: TACTIC_LABEL[tac] || tac,
-      items: grouped[tac].sort((a, b) => b.deg - a.deg),
-    }))
-    const cols = colGroups.flatMap(g => g.items)
-    const edgeSet = new Set()
-    rows.forEach(r => actorById[r.id].techniques.forEach(tid => {
-      if (techById[tid]) edgeSet.add(r.id + '|' + tid)
-    }))
-    const topTech = [...cols].sort((a, b) => b.deg - a.deg).slice(0, 12)
-    return { rows, cols, colGroups, edgeSet, maxDeg, topTech, techById, actorById, techDeg }
+    return {
+      techById, actorById, usage,
+      rows: actors.length,
+      cols: Object.keys(usage).length,
+      links,
+    }
   }, [actors, techs])
 
-  const { rows, cols, colGroups, edgeSet, maxDeg, topTech, techById, actorById, techDeg } = model
+  const { techById, actorById, usage, rows, cols, links } = model
 
-  const q = query.trim().toLowerCase()
-  const visibleRows = useMemo(() => q ? rows.filter(r => r.label.toLowerCase().includes(q)) : rows, [rows, q])
-  const rowIndex = useMemo(() => Object.fromEntries(visibleRows.map((r, i) => [r.id, i])), [visibleRows])
-  const colIndex = useMemo(() => Object.fromEntries(cols.map((c, i) => [c.id, i])), [cols])
+  // Technique leaderboard, ranked by actor count (popularity), then filtered.
+  const leaderboard = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const tac = tactic
+    return Object.keys(usage)
+      .map(tid => {
+        const t = techById[tid]
+        return { id: tid, label: t?.name || tid, deg: usage[tid], tactics: t?.tactics || [] }
+      })
+      .filter(t => {
+        if (tac && !t.tactics.includes(tac)) return false
+        if (q && !(t.id.toLowerCase().includes(q) || t.label.toLowerCase().includes(q))) return false
+        return true
+      })
+      .sort((a, b) => b.deg - a.deg || a.id.localeCompare(b.id))
+  }, [usage, techById, query, tactic])
 
-  const focusNode = focus ? (actorById[focus] ? { type: 'group', label: actorById[focus].name }
-    : techById[focus] ? { type: 'tech', label: techById[focus].name } : null) : null
+  const maxDeg = leaderboard.length ? leaderboard[0].deg : 1
+
+  const focusNode = focus
+    ? (actorById[focus] ? { type: 'group', label: actorById[focus].name }
+      : techById[focus] ? { type: 'tech', label: techById[focus].name } : null)
+    : null
 
   const detail = useMemo(() => {
     if (!focus) return null
@@ -111,21 +109,9 @@ export default function AttackGraph() {
       return { kind: 'actor', title: a.name, sub: `${list.length} ATT&CK techniques used`, list }
     }
     const t = techById[focus]
-    const list = rows.filter(r => actorById[r.id].techniques.includes(focus)).map(r => ({ id: r.id, label: r.label }))
+    const list = rows ? Object.values(actorById).filter(a => a.techniques.includes(focus)).map(a => ({ id: a.id, label: a.name })) : []
     return { kind: 'tech', title: t.name, sub: `Used by ${list.length} threat actor${list.length === 1 ? '' : 's'}`, list }
   }, [focus, actorById, techById, rows])
-
-  // hover takes precedence over focus for highlighting
-  const hl = hover || (focus ? { type: focusNode?.type === 'group' ? 'row' : 'col', id: focus } : null)
-  const isDim = (actorId, techId) => {
-    if (!hl) return false
-    return hl.type === 'row' ? actorId !== hl.id : techId !== hl.id
-  }
-
-  // layout constants
-  const CELL = 13, GAP = 1, GUTTER = 200, HEAD = 78, FOOT = 8
-  const W = GUTTER + cols.length * CELL
-  const H = HEAD + visibleRows.length * CELL + FOOT
 
   return (
     <div className="space-y-6">
@@ -133,8 +119,8 @@ export default function AttackGraph() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-fg"><Share2 className="h-6 w-6 text-accent" /> Attack Matrix</h1>
           <p className="text-sm text-muted">
-            Every lit cell = a threat actor uses that ATT&CK technique. Rows are actors, columns are techniques grouped by
-            kill-chain phase. Hover or click any row or column to inspect it.
+            Ranked ATT&CK techniques by how many tracked threat actors use them. The higher the bar, the more
+            prevalent the technique across the adversary landscape. Click any technique to see the actors using it.
           </p>
         </div>
       </header>
@@ -148,13 +134,21 @@ export default function AttackGraph() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
               type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-              placeholder="Filter actors by name…"
-              aria-label="Filter actors"
+              placeholder="Filter techniques by ID or name…"
+              aria-label="Filter techniques"
               className="w-full rounded-xl border border-border bg-surface-2/60 py-2 pl-9 pr-3 text-sm text-fg placeholder:text-faint focus:border-accent focus:outline-none"
             />
           </div>
+          <select
+            value={tactic} onChange={(e) => setTactic(e.target.value)}
+            aria-label="Filter by tactic"
+            className="rounded-xl border border-border bg-surface-2/60 px-3 py-2 text-sm text-fg focus:border-accent focus:outline-none"
+          >
+            <option value="">All tactics</option>
+            {TACTIC_ORDER.map(t => <option key={t} value={t}>{TACTIC_LABEL[t] || t}</option>)}
+          </select>
           <div className="inline-flex items-center gap-1.5 rounded-xl border border-border-strong px-3 py-2 text-sm text-muted">
-            <Filter className="h-3.5 w-3.5" /> {rows.length} actors · {cols.length} techniques · {edgeSet.size} links
+            <Filter className="h-3.5 w-3.5" /> {rows} actors · {cols} techniques · {links} links
           </div>
           {focus && (
             <button onClick={() => setFocus(null)} className="inline-flex items-center gap-1 rounded-xl border border-border-strong px-3 py-2 text-sm text-muted hover:bg-surface-2">
@@ -164,119 +158,49 @@ export default function AttackGraph() {
         </div>
       )}
 
-      {!isLoading && !error && topTech.length > 0 && (
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {!isLoading && !error && (
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <div className="col-span-full mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted">
-            <Link2 className="h-3.5 w-3.5" /> Most-targeted techniques (by actor count)
+            <BarChart3 className="h-3.5 w-3.5" /> Technique leaderboard — by actor count
           </div>
-          {topTech.map(t => (
-            <button key={t.id} onClick={() => setFocus(t.id)}
-              className="flex items-center justify-between rounded-xl border border-border bg-surface-2/40 px-3 py-2 text-left hover:border-border-strong hover:bg-surface-2/70">
-              <span className="truncate text-sm text-fg">{t.label}</span>
-              <span className="ml-2 shrink-0 rounded-full bg-attack-soft px-2 py-0.5 text-xs text-attack-ink">{t.deg}</span>
+          {leaderboard.slice(0, 40).map(t => (
+            <button
+              key={t.id}
+              onClick={() => setFocus(t.id)}
+              className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface-2/40 px-3 py-2 text-left hover:border-border-strong hover:bg-surface-2/70"
+            >
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs font-bold text-accent">{t.id}</span>
+                  <span className="truncate text-sm text-fg">{t.label}</span>
+                </div>
+                <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-surface">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-sky-500 to-danger"
+                    style={{ width: `${Math.max(4, Math.round(100 * t.deg / maxDeg))}%` }}
+                  />
+                </div>
+              </div>
+              <span className="shrink-0 rounded-full bg-attack-soft px-2 py-0.5 text-xs text-attack-ink">{t.deg}</span>
             </button>
           ))}
+          {leaderboard.length === 0 && (
+            <p className="col-span-full text-sm text-faint">No techniques match your filter.</p>
+          )}
         </div>
       )}
 
-      {!isLoading && !error && cols.length > 0 && (
-        <div className="overflow-auto rounded-2xl border border-border bg-bg/60 attack-matrix" style={{ maxHeight: '70vh' }}>
-          <svg
-            viewBox={`0 0 ${W} ${H}`}
-            width={W} height={H}
-            className="block"
-            role="group"
-            aria-label="Adjacency matrix of threat actors (rows) and ATT&CK techniques (columns)"
-          >
-            {/* tactic group separators + labels */}
-            {colGroups.map(g => {
-              const gStartCol = cols.findIndex(c => c.id === g.items[0].id)
-              return (
-                <g key={g.tac}>
-                  <line x1={GUTTER + gStartCol * CELL} y1={0} x2={GUTTER + gStartCol * CELL} y2={H} stroke="var(--border-strong)" strokeWidth={1} opacity={0.55} />
-                  <text x={GUTTER + gStartCol * CELL + CELL / 2} y={12} textAnchor="middle" className="fill-faint text-[9px] font-semibold uppercase tracking-wide">{g.label}</text>
-                </g>
-              )
-            })}
-
-            {/* cells: only the lit (linked) ones are drawn */}
-            {visibleRows.map(r => (
-              <g key={r.id} opacity={hl && hl.type === 'row' && hl.id !== r.id ? 0.1 : 1}>
-                {actorById[r.id].techniques.map(tid => {
-                  const ci = colIndex[tid]
-                  if (ci == null) return null
-                  const dim = isDim(r.id, tid)
-                  const intensity = 0.3 + 0.7 * (techDeg[tid] / maxDeg)
-                  return (
-                    <rect
-                      key={tid}
-                      x={GUTTER + ci * CELL} y={HEAD + (rowIndex[r.id] || 0) * CELL}
-                      width={CELL - GAP} height={CELL - GAP} rx={2}
-                      fill="var(--accent)"
-                      opacity={dim ? 0.04 : intensity}
-                      className="cursor-pointer"
-                      onClick={() => setFocus(r.id)}
-                      onMouseEnter={() => setHover({ type: 'row', id: r.id })}
-                      onMouseLeave={() => setHover(null)}
-                    >
-                      <title>{`${r.label} → ${techById[tid]?.name}`}</title>
-                    </rect>
-                  )
-                })}
-              </g>
-            ))}
-
-            {/* column headers (technique IDs), grouped by tactic */}
-            {colGroups.map(g => {
-              const gStartCol = cols.findIndex(c => c.id === g.items[0].id)
-              return (
-                <g key={g.tac + '-h'}>
-                  {g.items.map((it, i) => {
-                    const ci = gStartCol + i
-                    const cx = GUTTER + ci * CELL + CELL / 2
-                    return (
-                      <g key={it.id}
-                        opacity={hl && hl.type === 'col' && hl.id !== it.id ? 0.18 : 1}
-                        className="cursor-pointer"
-                        onClick={() => setFocus(it.id)}
-                        onMouseEnter={() => setHover({ type: 'col', id: it.id })}
-                        onMouseLeave={() => setHover(null)}
-                      >
-                        <rect x={GUTTER + ci * CELL} y={0} width={CELL} height={HEAD} fill="transparent" />
-                        <text x={cx} y={HEAD - 6} transform={`rotate(-90 ${cx} ${HEAD - 6})`} textAnchor="start"
-                          className="fill-muted text-[9px] font-medium">{it.id}</text>
-                        <title>{`${it.label} — used by ${it.deg} actors`}</title>
-                      </g>
-                    )
-                  })}
-                </g>
-              )
-            })}
-
-            {/* row headers (actor names) */}
-            {visibleRows.map(r => (
-              <g key={r.id}
-                opacity={hl && hl.type === 'row' && hl.id !== r.id ? 0.18 : 1}
-                className="cursor-pointer"
-                onClick={() => setFocus(r.id)}
-                onMouseEnter={() => setHover({ type: 'row', id: r.id })}
-                onMouseLeave={() => setHover(null)}
-              >
-                <rect x={0} y={HEAD + (rowIndex[r.id] || 0) * CELL} width={GUTTER - 6} height={CELL} fill="transparent" />
-                <text x={GUTTER - 10} y={HEAD + (rowIndex[r.id] || 0) * CELL + CELL / 2 + 3} textAnchor="end" className="fill-fg text-[10px]">{r.label.length > 26 ? r.label.slice(0, 26) + '…' : r.label}</text>
-                <title>{`${r.label} — ${r.deg} techniques`}</title>
-              </g>
-            ))}
-          </svg>
-        </div>
+      {!isLoading && !error && leaderboard.length > 40 && (
+        <p className="text-xs text-muted">
+          Showing top 40 of {leaderboard.length} techniques. Use the search/filter to narrow the list.
+        </p>
       )}
 
-      {!isLoading && !error && cols.length > 0 && (
+      {!isLoading && !error && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
-          <span className="inline-flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm bg-accent" /> Actor uses technique</span>
-          <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-danger" /> Threat actor (row)</span>
-          <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-attack" /> ATT&CK technique (column)</span>
-          <span className="ml-auto">Cell brightness = how many actors use that technique</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-attack" /> ATT&CK technique</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-danger" /> Threat actor</span>
+          <span className="ml-auto">Bar length = number of tracked actors using the technique</span>
         </div>
       )}
 
