@@ -2,8 +2,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Share2, Search, X, Link2, Filter } from 'lucide-react'
 
-const ACTORS_PATH = '/data/attack-actors.json'
-const TECH_PATH = '/data/attack-enterprise.json'
+import { ENDPOINTS } from '../config/api'
+
+const ACTORS_PATH = ENDPOINTS.attackActors
+const TECH_PATH = ENDPOINTS.attackEnterprise
 
 // Canonical ATT&CK enterprise tactic order (lays out the matrix columns left→right).
 const TACTIC_ORDER = [

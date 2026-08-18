@@ -6,7 +6,9 @@ import { useFetch } from '../hooks/useFetch'
 // MITRE ATT&CK Enterprise data — mirrored server-side into the site's own
 // origin by the sync-threat-feeds workflow (the raw STIX is 50MB+ and is
 // CORS-blocked, so we serve a slim curated copy from /data).
-const ATTACK_DATA_URL = '/data/attack-enterprise.json'
+import { ENDPOINTS } from '../config/api'
+
+const ATTACK_DATA_URL = ENDPOINTS.attackEnterprise
 
 const TACTIC_ORDER = [
   'reconnaissance',

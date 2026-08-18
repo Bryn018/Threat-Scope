@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Bookmark, BookmarkPlus, Trash2, Bell, Send, Clock, AlertTriangle } from 'lucide-react'
 
-const KEV_PATH = '/data/cisa-kev.json'
-const ACTORS_PATH = '/data/attack-actors.json'
+import { ENDPOINTS } from '../config/api'
+
+const KEV_PATH = ENDPOINTS.kev
+const ACTORS_PATH = ENDPOINTS.attackActors
 const LS_KEY = 'threatscope_watchlist_v1'
 const LS_SEEN = 'threatscope_watchlist_seen_v1'
 

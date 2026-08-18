@@ -1,4 +1,6 @@
-export const KEV_STATIC_PATH = '/data/cisa-kev.json'
+import { ENDPOINTS } from '../config/api'
+
+export const KEV_STATIC_PATH = ENDPOINTS.kev
 
 export function dateDaysAgo(days) {
   const d = new Date()
@@ -107,7 +109,7 @@ export function filterByCwe(vulnerabilities, cwe) {
 
 export async function loadTechniqueMap() {
   try {
-    const response = await fetch('/data/technique-map.json')
+    const response = await fetch(ENDPOINTS.techniqueMap)
     if (!response.ok) return {}
     return await response.json()
   } catch {

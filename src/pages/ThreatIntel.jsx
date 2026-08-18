@@ -5,8 +5,10 @@ import { useFetch } from '../hooks/useFetch'
 // CISA feed data is mirrored server-side into the site's own origin by the
 // sync-threat-feeds workflow (CISA's RSS endpoints are CORS-blocked and 301
 // redirect, so direct browser fetch is unreliable).
-const ADVISORIES_URL = '/data/cisa-advisories.json'
-const NEWS_URL = '/data/cisa-news.json'
+import { ENDPOINTS } from '../config/api'
+
+const ADVISORIES_URL = ENDPOINTS.cisaAdvisories
+const NEWS_URL = ENDPOINTS.cisaNews
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'

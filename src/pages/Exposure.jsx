@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { ShieldAlert, Bug, TrendingUp, Radio, ArrowLeft } from 'lucide-react'
 import { buildVendorExposure, attachEpss } from '../utils/threatUtils'
 
-const KEV_PATH = '/data/cisa-kev.json'
-const EPSS_PATH = '/data/epss-scores.json'
-const EXPLOITS_PATH = '/data/exploits-by-cve.json'
+import { ENDPOINTS } from '../config/api'
+
+const KEV_PATH = ENDPOINTS.kev
+const EPSS_PATH = ENDPOINTS.epss
+const EXPLOITS_PATH = ENDPOINTS.exploitsByCve
 
 function EpssPill({ value }) {
   if (value == null) return <span className="text-muted">—</span>

@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Users, Search, Crosshair, Bug, Wrench, ExternalLink, ArrowLeft, ShieldHalf, Skull } from 'lucide-react'
 
-const ACTORS_PATH = '/data/attack-actors.json'
+import { ENDPOINTS } from '../config/api'
+
+const ACTORS_PATH = ENDPOINTS.attackActors
 
 function StatPill({ icon: Icon, label, value, tone = 'text-muted' }) {
   return (

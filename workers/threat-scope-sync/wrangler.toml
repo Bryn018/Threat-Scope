@@ -1,0 +1,12 @@
+name = "threat-scope-sync"
+main = "src/index.js"
+compatibility_date = "2026-08-18"
+
+# KV namespace for storing threat intelligence data
+[[kv_namespaces]]
+binding = "THREAT_SCOPE_DATA"
+id = "e4896adb50fc4821909069f6b92b4175"
+
+# Single cron trigger: every hour, the Worker decides what to sync based on time
+[triggers]
+crons = ["23 * * * *"]

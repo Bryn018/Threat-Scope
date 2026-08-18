@@ -20,8 +20,10 @@ import {
   epssBand,
 } from '../utils/threatUtils'
 
-const STATIC_DATA_PATH = '/data/cisa-kev.json'
-const EPSS_PATH = '/data/epss-scores.json'
+import { ENDPOINTS } from '../config/api'
+
+const STATIC_DATA_PATH = ENDPOINTS.kev
+const EPSS_PATH = ENDPOINTS.epss
 
 function todayLabel() {
   return new Date().toLocaleDateString('en-CA')
