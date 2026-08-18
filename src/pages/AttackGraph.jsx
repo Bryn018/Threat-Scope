@@ -176,7 +176,7 @@ export default function AttackGraph() {
                 </div>
                 <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-surface">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-sky-500 to-danger"
+                    className="h-full rounded-full bg-accent"
                     style={{ width: `${Math.max(4, Math.round(100 * t.deg / maxDeg))}%` }}
                   />
                 </div>

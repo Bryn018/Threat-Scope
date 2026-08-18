@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import { ThemeContext } from './themeContext'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 const STORAGE_KEY = 'threatscope-theme'
+
+const ThemeContext = createContext(null)
 
 function getInitialTheme() {
   if (typeof window === 'undefined') return 'dark'
@@ -40,4 +41,10 @@ export function ThemeProvider({ children }) {
       {children}
     </ThemeContext.Provider>
   )
+}
+
+export function useTheme() {
+  const ctx = useContext(ThemeContext)
+  if (!ctx) throw new Error('useTheme must be used within a ThemeProvider')
+  return ctx
 }
