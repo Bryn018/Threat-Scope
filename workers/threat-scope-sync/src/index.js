@@ -258,45 +258,6 @@ async function fetchCisaFeeds() {
   return { advisories, news };
 }
 
-// ─── Edge Headers ────────────────────────────────────────────────────────────
-
-async function applyEdgeHeaders(env) {
-  // Read _headers content from KV (synced separately) or fetch from GitHub
-  // For now, apply a standard set of security headers via Cloudflare API
-  const zoneId = env.CF_ZONE_ID || "";
-  const apiToken = env.CF_API_TOKEN || "";
-  
-  if (!zoneId || !apiToken) {
-    return { status: "skipped", reason: "CF_ZONE_ID or CF_API_TOKEN not set" };
-  }
-  
-  // Fetch _headers from GitHub raw
-  const headersUrl = "https://raw.githubusercontent.com/Bryn018/Threat-Scope/main/public/_headers";
-  try {
-    const res = await fetch(headersUrl, { headers: { "User-Agent": UA } });
-    if (!res.ok) throw new Error(`Failed to fetch _headers: ${res.status}`);
-    const headersContent = await res.text();
-    
-    // Parse _headers file into Cloudflare Transform Rule format
-    const lines = headersContent.split("\n").filter(l => l.trim() && !l.startsWith("#"));
-    
-    // Apply via Cloudflare API
-    const rule = {
-      name: "Threat Scope Security Headers",
-      expression: "(http.host eq \"threatscope.insights.autos\")",
-      description: "Auto-applied security headers from public/_headers",
-      enabled: true,
-    };
-    
-    // This is a simplified version - in production, you'd parse the _headers format
-    // and create the appropriate Cloudflare Transform Rule
-    
-    return { status: "ok", headers_count: lines.length };
-  } catch (e) {
-    return { status: "error", message: e.message };
-  }
-}
-
 // ─── Data Health Check ───────────────────────────────────────────────────────
 
 async function checkDataHealth(kv) {
@@ -614,9 +575,9 @@ export default {
       
       // Edge headers
       if (path === "/apply-headers") {
-        return resp(await applyEdgeHeaders(env));
+        return resp({ error: "removed" }, 410);
       }
-      
+
       return resp({ error: "Not found", path }, 404);
       
     } catch (e) {
@@ -624,49 +585,35 @@ export default {
     }
   },
   
-  // Scheduled handler for cron triggers
+  // Scheduled handler — fires every 6h (see wrangler.toml cron). On each tick we
+  // refresh every feed so the dashboard never displays data older than 6h. The
+  // daily threat brief + data-health check run once per day off the UTC hour.
   async scheduled(event, env, ctx) {
     const now = new Date();
     const hour = now.getUTCHours();
     const minute = now.getUTCMinutes();
-    
+
     console.log(`[cron] Triggered at ${now.toISOString()}`);
-    
+
     const kv = env.THREAT_SCOPE_DATA;
     const results = {};
-    
+
     try {
-      // Every hour: CISA KEV + EPSS
       results.kev = await syncKev(kv);
-      
-      // Every 3h: CISA advisories/news
-      if (hour % 3 === 0) {
-        results.cisa = await syncCisa(kv);
-      }
-      
-      // Every 6h: Exploit-DB
-      if (hour % 6 === 0) {
-        results.exploits = await syncExploits(kv);
-      }
-      
-      // Daily at 02:47 UTC: MITRE ATT&CK
-      if (hour === 2 && minute >= 45) {
-        results.attack = await syncAttack(kv);
-      }
-      
-      // Daily at 06:19 UTC: Threat brief
+      results.attack = await syncAttack(kv);
+      results.exploits = await syncExploits(kv);
+      results.cisa = await syncCisa(kv);
+
+      // Daily at 06:17 UTC: Threat brief digest
       if (hour === 6 && minute >= 15) {
         results.brief = await syncBrief(kv);
       }
-      
-      // Every 12h: Data health check
-      if (hour % 12 === 0) {
+
+      // Daily at 12:17 UTC: Data health check
+      if (hour === 12 && minute >= 15) {
         results.health = await checkDataHealth(kv);
       }
-      
-      // Edge headers (manual trigger only)
-      // results.headers = await applyEdgeHeaders(env);
-      
+
       console.log(`[cron] Completed: ${JSON.stringify(results)}`);
     } catch (e) {
       console.error(`[cron] Failed: ${e.message}`);

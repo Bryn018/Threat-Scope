@@ -101,7 +101,3 @@ export function useFetch(url, options = {}) {
 
   return { data, isLoading, error, lastUpdated, refresh }
 }
-
-export function clearCache() {
-  CACHE.clear()
-}
