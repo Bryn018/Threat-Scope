@@ -1,0 +1,4 @@
+# Cloudflare Pages build configuration
+# https://developers.cloudflare.com/pages/build-configuration/
+name = "threat-scope"
+pages_build_output_dir = "docs"

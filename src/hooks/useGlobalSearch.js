@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 
-const BASE = import.meta.env.BASE_URL
-const KEV_PATH = `${BASE}data/cisa-kev.json`
-const ACTORS_PATH = `${BASE}data/attack-actors.json`
-const TECH_PATH = `${BASE}data/attack-enterprise.json`
+import { ENDPOINTS } from '../config/api'
+
+const KEV_PATH = ENDPOINTS.kev
+const ACTORS_PATH = ENDPOINTS.attackActors
+const TECH_PATH = ENDPOINTS.attackEnterprise
 
 // Module-level cache so repeated palette opens don't refetch the datasets.
 let _indexPromise = null
